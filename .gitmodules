@@ -1,3 +1,9 @@
 [submodule "lib/heatshrink"]
 	path = lib/heatshrink
 	url = https://github.com/atomicobject/heatshrink.git
+[submodule "lib/mqtt"]
+	path = lib/mqtt
+	url = https://github.com/tuanpmt/esp_mqtt.git
+[submodule "lib/esphttpd"]
+	path = lib/esphttpd
+	url = http://git.spritesserver.nl/esphttpd.git/
