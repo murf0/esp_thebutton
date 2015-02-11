@@ -9,7 +9,22 @@ Patch mkespfsimage: cd lib && patch -p0 < ../mkespfsimage.patch && cd ..
 Build:
 ./build.sh
 
+Flash:
+./flash.sh
 
 Clear out Settings (AP and such)
 Write blank.bin to address 0x7e000
 esptool.py -p /dev/tty.wchusbserial1410 write_flash 0x7e000 ../blank.bin
+
+Update Submodules already checked out and stuff
+git submodule foreach git pull origin master
+
+
+Issues
+No Backend
+No Mqtt
+Nothing is actually working...
+
+MQTT
+
+Serverside

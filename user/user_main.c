@@ -9,8 +9,9 @@
 
 #include "mqtt.h"
 #include "esphttpd.h"
+#include "74HC595.h"
 
-#include "wifi.h"
+#include "httpd_wifi.h"
 
 HttpdBuiltInUrl builtInUrls[]={
     {"/", cgiRedirect, "/wifi.tpl"},
@@ -28,6 +29,9 @@ HttpdBuiltInUrl builtInUrls[]={
 void user_init(void) {
     stdoutInit();
     ioInit();
+    initShiftIO();
+    lightleds(0);
     httpdInit(builtInUrls, 80);
+    init_mqtt();
     os_printf("\nReady\n");
 }
