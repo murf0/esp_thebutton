@@ -7,11 +7,23 @@
 #include "ets_sys.h"
 #include "osapi.h"
 
-#include "mqtt.h"
-#include "esphttpd.h"
-#include "74HC595.h"
 
-#include "httpd_wifi.h"
+#include "esphttpd.h"
+#include "btn_74HC595.h"
+#include "btn_mqtt.h"
+#include "btn_httpd_wifi.h"
+
+
+#include "driver/uart.h"
+#include "wifi.h"
+#include "config.h"
+#include "debug.h"
+#include "gpio.h"
+#include "user_interface.h"
+#include "mem.h"
+//HTTPD
+#include "stdout.h"
+#include "httpd.h"
 
 HttpdBuiltInUrl builtInUrls[]={
     {"/", cgiRedirect, "/wifi.tpl"},
@@ -27,11 +39,20 @@ HttpdBuiltInUrl builtInUrls[]={
 
 //Main routine. Initialize stdout, the I/O and the webserver and we're done.
 void user_init(void) {
+    
     stdoutInit();
+    INFO("\nIOINIT\n");
     ioInit();
-    initShiftIO();
-    lightleds(0);
+
+    INFO("\nINITHTTPD\n");
     httpdInit(builtInUrls, 80);
+    INFO("\ninitmqtt\n");
     init_mqtt();
+    //Initiate Shift Reg
+    initShiftIO();
+    //Set all pins on shiftreg to 0
+    noleds();
     os_printf("\nReady\n");
+    
+
 }

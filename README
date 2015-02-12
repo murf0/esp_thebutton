@@ -1,4 +1,7 @@
 README
+
+Disclaimer: I’m not a professional, I hack around trying to get “the” stuff to work. C is really REALLY hard. I would like feedback! and thank you!
+
 git clone
 Checkout Submodules
 git submodule init
@@ -21,9 +24,8 @@ git submodule foreach git pull origin master
 
 
 Issues
-No Backend
-No Mqtt
-Nothing is actually working...
+Lots and lots of stuff isn't is actually working...
+
 
 MQTT
 

@@ -25,11 +25,11 @@ ESPPORT		?= /dev/ttyUSB0
 TARGET		= thebutton
 
 # which modules (subdirectories) of the project to include in compiling
-MODULES	= driver user lib/esphttpd/user lib/mqtt/mqtt
+MODULES	= user lib/esphttpd/user lib/mqtt/mqtt  driver 
 ifdef C99
 MODULES	= lib/esphttpd/user
 endif
-EXTRA_INCDIR	= include $(SDK_BASE)/../include lib/heatshrink lib/esphttpd/include lib/mqtt/include
+EXTRA_INCDIR	= include $(SDK_BASE)/../include lib/heatshrink lib/esphttpd/include lib/esphttpd/user lib/mqtt/include lib/mqtt/mqtt
 
 # libraries used in this project, mainly provided by the SDK
 LIBS		= c gcc hal phy pp net80211 lwip wpa upgrade main ssl

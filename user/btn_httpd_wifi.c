@@ -4,8 +4,14 @@
 * Adaptation Murf
  */
 
+#include <string.h>
+#include <osapi.h>
+
 #include "ets_sys.h"
-#include "osapi.h"
+
+#include "user_interface.h"
+#include "mem.h"
+
 
 #include "mqtt.h"
 #include "esphttpd.h"
@@ -28,6 +34,10 @@ void ICACHE_FLASH_ATTR btnTplWlan(HttpdConnData *connData, char *token, void **a
         os_strcpy(buff, (char*)stconf.ssid);
     } else if (os_strcmp(token, "WiFiPasswd")==0) {
         os_strcpy(buff, (char*)stconf.password);
+    } else if (os_strcmp(token, "DeviceID")==0) {
+        uint8_t client_id[16];
+        os_sprintf(client_id, "%08X", system_get_chip_id());
+        os_strcpy(buff, (char*)client_id);
     } else if (os_strcmp(token, "WiFiapwarn")==0) {
         x=wifi_get_opmode();
         if (x==2) {

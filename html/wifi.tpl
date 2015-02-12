@@ -76,6 +76,8 @@ window.onload=function(e) {
 <div id="main">
 <p>
 Current WiFi mode: %WiFiMode%
+</ br>
+DeviceID: %DeviceID%
 </p>
 <p>
 Note: %WiFiapwarn%
