@@ -1,4 +1,7 @@
 #Changelog
+# This Mac SDK installed in volume as the wiki
+# http://www.esp8266.com/wiki/doku.php?id=setup-osx-compiler-esp8266
+# The Makefile is OSX. but will work mostly on linux
 # Changed the variables to include the header file directory
 # Added global var for the XTENSA tool root
 #
@@ -11,15 +14,15 @@ BUILD_BASE	= build
 FW_BASE		= firmware
 
 # Base directory for the compiler
-XTENSA_TOOLS_ROOT ?= /home/esp8266/esp8266/esp-open-sdk/xtensa-lx106-elf/bin
+XTENSA_TOOLS_ROOT ?= /Volumes/esp-open-sdk/xtensa-lx106-elf/bin
 
 # base directory of the ESP8266 SDK package, absolute
-#SDK_BASE        ?= /home/esp8266/esp8266/esp-open-sdk/sdk
-SDK_BASE	?= /home/esp8266/esp8266/esp-open-sdk/esp_iot_sdk_v0.9.4
+#SDK_BASE        ?= /Volumes/esp-open-sdk/sdk
+SDK_BASE	?= /Volumes/esp-open-sdk/esp_iot_sdk_v0.9.4
 
 #Esptool.py path and port
-ESPTOOL		?= /home/esp8266/esp8266/esp-open-sdk/esptool/esptool.py
-ESPPORT		?= /dev/ttyUSB0
+ESPTOOL		?= /Volumes/esp-open-sdk/esptool/esptool.py
+ESPPORT		?= /dev/tty.wchusbserial1410
 
 # name for the target project
 TARGET		= thebutton
@@ -142,14 +145,14 @@ flash: firmware/0x00000.bin firmware/0x40000.bin
 	$(vecho) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x3C000 $(BLANKER) 0x40000 firmware/0x40000.bin
 
 webpages.espfs: html/ mkespfsimage
-	cd html; find | ../mkespfsimage > ../webpages.espfs; cd ..
+	cd html; find . | ../mkespfsimage > ../webpages.espfs; cd ..
 
 mkespfsimage: lib/esphttpd/mkespfsimage/
 	make -C lib/esphttpd/mkespfsimage
 	mv lib/esphttpd/mkespfsimage/mkespfsimage ./
 
 htmlflash: webpages.espfs
-	if [ $$(stat -c '%s' webpages.espfs) -gt $$(( 0x2E000 )) ]; then echo "webpages.espfs too big!"; false; fi
+	if [ $$(stat -f '%z' webpages.espfs) -gt $$(( 0x2E000 )) ]; then echo "webpages.espfs too big!"; false; fi
 	$(vecho) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x12000 webpages.espfs
 
 test: flash
@@ -165,5 +168,7 @@ clean:
 	$(Q) rm -rf $(FW_BASE)
 	$(Q) rm -f mkespfsimage
 	$(Q) rm -f webpages.espfs
+	$(Q) rm -f lib/esphttpd/mkespfsimage/mkespfsimage
+	$(Q) rm -f lib/esphttpd/mkespfsimage/*.o
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call compile-objects,$(bdir))))
