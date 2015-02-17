@@ -12,6 +12,8 @@
 #include "gpio.h"
 #include "mem.h"
 
+
+
 static ETSTimer btnWiFiLinker;
 
 MQTT_Client mqttClient;
@@ -45,9 +47,8 @@ void ICACHE_FLASH_ATTR mqttConnectedCb(uint32_t *args) {
 	MQTT_Subscribe(client, statustopic, 2);
     
     INFO("MQTT: Connected! subscribe to: %s\r\n", statustopic);
-    INFO("MQTT: Connected! RegisterTopic to: %s\r\n", registertopic);
-    os_sprintf(temp,"{\"register\": \"%s\"}\r\n", mqttcfg.client_id);
-    MQTT_Publish(client, registertopic, temp, os_strlen(temp), 2, 0);
+    
+
     
 }
 
@@ -77,37 +78,42 @@ void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t to
     INFO("Data: %s\n",dataBuf);
     /*PARSE MESSG
      Commands available is: 
-     ADDLED
-     REMOVELED
-     NOLED
-     FLASHLED
+     {\"DO\":\"ADDLED\"}
+     {\"DO\":\"REMOVELED\"}
+     {\"DO\":\"NOLED\"}
+     {\"DO\":\"FLASHLED\"}
      */
-     if(os_strcmp(dataBuf,"ADDLED")==0) {
+     if(os_strcmp(dataBuf,"{\"DO\":\"ADDLED\"}")==0) {
          if(ledslit!=8) {
              ledslit+=1;
          }
          lightleds(ledslit);
          INFO("ADDLED - Ledslit: %d\n",ledslit);
      }
-    if(os_strcmp(dataBuf,"REMOVELED")==0) {
+    if(os_strcmp(dataBuf,"{\"DO\":\"REMOVELED\"}")==0) {
         if(ledslit!=0) {
             ledslit-=1;
         }
         lightleds(ledslit);
         INFO("REMOVELED - Ledslit: %d\n",ledslit);
     }
-    if(os_strcmp(dataBuf,"NOLED")==0) {
+    if(os_strcmp(dataBuf,"{\"DO\":\"NOLED\"}")==0) {
         ledslit=0;
         lightleds(ledslit);
         INFO("NOLED - Ledslit: %d\n",ledslit);
     }
-    if(os_strcmp(dataBuf,"FLASHLED")==0) {
-        ledslit=8;
-        lightleds(ledslit);
+    if(os_strcmp(dataBuf,"{\"DO\":\"FLASHLED\"}")==0) {
+        int i=0;
+        for(i=0;i<20*2;i++) {
+            ledslit=8;
+            lightleds(ledslit);
+            os_delay_us(500000);
+            ledslit=0;
+            lightleds(ledslit);
+        }
         INFO("FLASHLED - Ledslit: %d\n",ledslit);
     }
     lightleds(ledslit);
-    os_delay_us(1000);
     os_free(status);
     os_free(dataBuf);
 }

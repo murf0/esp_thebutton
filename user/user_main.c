@@ -39,8 +39,10 @@ HttpdBuiltInUrl builtInUrls[]={
 
 //Main routine. Initialize stdout, the I/O and the webserver and we're done.
 void user_init(void) {
-    
     stdoutInit();
+    os_delay_us(1000);
+    INFO("\n\n");
+    btnSetSoftAP();
     INFO("\nIOINIT\n");
     ioInit();
 
@@ -48,11 +50,11 @@ void user_init(void) {
     httpdInit(builtInUrls, 80);
     INFO("\ninitmqtt\n");
     init_mqtt();
+    //Hook button
+    init_interupt();
     //Initiate Shift Reg
     initShiftIO();
     //Set all pins on shiftreg to 0
     noleds();
     os_printf("\nReady\n");
-    
-
 }

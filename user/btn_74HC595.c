@@ -12,9 +12,10 @@
 #include "gpio.h"
 #include "mem.h"
 
-#define ClockPin    14
-#define DataPin     13
-#define LatchPin    12
+
+#define DataPin     14 //DS, DataPin
+#define LatchPin    12 //ST_CP, LatchPin
+#define ClockPin    13 //SH_CP, ClockPin
 
 void ICACHE_FLASH_ATTR initShiftIO(void) {
     int initstate = 0;
@@ -28,13 +29,14 @@ void ICACHE_FLASH_ATTR initShiftIO(void) {
     // PIN_FUNC_SELECT(PERIPHS_IO_MUX_MTDO_U, FUNC_GPIO15);
     // PIN_FUNC_SELECT(PERIPHS_IO_MUX_XPD_DCDC_U, FUNC_GPIO16);
     
-    GPIO_OUTPUT_SET(12,0); //ST_CP on SHIFT REG aka ClockPin
-    GPIO_OUTPUT_SET(13,0); //DS pin on SHIFT REG aka DataPin
-    GPIO_OUTPUT_SET(14,0); //SH_CP on SHIFT REG aka LatchPin
+    GPIO_OUTPUT_SET(12,0); //SH_CP, ClockPin
+    GPIO_OUTPUT_SET(13,0); //DS, DataPin
+    GPIO_OUTPUT_SET(14,0); //ST_CP, LatchPin
     
     
 }
 void ICACHE_FLASH_ATTR noleds() {
+    INFO("Set NoLEDS\n");
     int i=0;
     GPIO_OUTPUT_SET(DataPin, 0);
     for(i=0; i<=8; i++) {
@@ -51,6 +53,7 @@ void ICACHE_FLASH_ATTR noleds() {
 void ICACHE_FLASH_ATTR lightleds(int ledslit) {
     int i;
     noleds();
+    INFO("Set %d LEDS\n",ledslit);
     GPIO_OUTPUT_SET(DataPin, 1);
     for(i=1; i<=ledslit; i++) {
         GPIO_OUTPUT_SET(ClockPin, 1);

@@ -56,9 +56,8 @@ SDK_INCDIR	= include include/json
 # we create two different files for uploading into the flash
 # these are the names and options to generate them
 FW_FILE_1	= 0x00000
-FW_FILE_1_ARGS	= -bo $@ -bs .text -bs .data -bs .rodata -bc -ec
-FW_FILE_2	= 0x40000
-FW_FILE_2_ARGS	= -es .irom0.text $@ -ec
+#FW_FILE_1_ARGS	= -bo $@ -bs .text -bs .data -bs .rodata -bc -ec
+FW_FILE_ARGS	= elf2image -o firmware/
 
 # select which tools to use as compiler, librarian and linker
 CC		:= $(XTENSA_TOOLS_ROOT)/xtensa-lx106-elf-gcc
@@ -69,7 +68,7 @@ LD		:= $(XTENSA_TOOLS_ROOT)/xtensa-lx106-elf-gcc
 #### no user configurable options below here
 ####
 
-FW_TOOL		?= /home/esp8266/esp8266/esp-open-sdk/esptool_FW/esptool/esptool
+FW_TOOL		?= $(ESPTOOL)
 SRC_DIR		:= $(MODULES)
 BUILD_DIR	:= $(addprefix $(BUILD_BASE)/,$(MODULES))
 SDK_LIBDIR	:= $(addprefix $(SDK_BASE)/,$(SDK_LIBDIR))
@@ -88,7 +87,7 @@ INCDIR	:= $(addprefix -I,$(SRC_DIR))
 EXTRA_INCDIR	:= $(addprefix -I,$(EXTRA_INCDIR))
 MODULE_INCDIR	:= $(addsuffix /include,$(INCDIR))
 
-FW_FILE_1	:= $(addprefix $(FW_BASE)/,$(FW_FILE_1).bin)
+FW_FILE	:= $(addprefix $(FW_BASE)/,$(FW_FILE_1).bin)
 FW_FILE_2	:= $(addprefix $(FW_BASE)/,$(FW_FILE_2).bin)
 BLANKER	:= $(addprefix $(SDK_BASE)/,bin/blank.bin)
 
@@ -114,16 +113,12 @@ endef
 ifdef C99
 all: checkdirs $(TARGET_OUT)
 else
-all: checkdirs $(TARGET_OUT) $(FW_FILE_1) $(FW_FILE_2)
+all: checkdirs $(TARGET_OUT) $(FW_FILE)
 endif
 
-$(FW_FILE_1): $(TARGET_OUT)
+$(FW_FILE): $(TARGET_OUT)
 	$(vecho) "FW $@"
-	$(Q) $(FW_TOOL) -eo $(TARGET_OUT) $(FW_FILE_1_ARGS)
-
-$(FW_FILE_2): $(TARGET_OUT)
-	$(vecho) "FW $@"
-	$(Q) $(FW_TOOL) -eo $(TARGET_OUT) $(FW_FILE_2_ARGS)
+	$(Q) $(FW_TOOL) $(FW_FILE_ARGS) $(TARGET_OUT) 
 
 $(TARGET_OUT): $(APP_AR)
 	$(vecho) "LD $@"
@@ -141,7 +136,7 @@ $(BUILD_DIR):
 firmware:
 	$(Q) mkdir -p $@
 
-flash: firmware/0x00000.bin firmware/0x40000.bin
+flash: firmware/0x00000.bin
 	$(vecho) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x3C000 $(BLANKER) 0x40000 firmware/0x40000.bin
 
 webpages.espfs: html/ mkespfsimage

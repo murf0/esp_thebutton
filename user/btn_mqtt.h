@@ -3,6 +3,7 @@
 
 #include "os_type.h"
 #include "user_config.h"
+#include "mqtt.h"
 
 typedef struct{
     uint8_t mqtt_host[64];
@@ -14,6 +15,11 @@ typedef struct{
     uint8_t security;
     
 } MQTTCFG;
+
+char registertopic[64];
+char statustopic[64];
+MQTT_Client mqttClient;
+MQTTCFG mqttcfg;
 
 void ICACHE_FLASH_ATTR wifiConnectCb(uint8_t status);
 void ICACHE_FLASH_ATTR mqttConnectedCb(uint32_t *args);
