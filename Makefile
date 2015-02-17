@@ -17,8 +17,8 @@ FW_BASE		= firmware
 XTENSA_TOOLS_ROOT ?= /Volumes/esp-open-sdk/xtensa-lx106-elf/bin
 
 # base directory of the ESP8266 SDK package, absolute
-#SDK_BASE        ?= /Volumes/esp-open-sdk/sdk
-SDK_BASE	?= /Volumes/esp-open-sdk/esp_iot_sdk_v0.9.4
+SDK_BASE        ?= /Volumes/esp-open-sdk/sdk
+#SDK_BASE	?= /Volumes/esp-open-sdk/esp_iot_sdk_v0.9.4
 
 #Esptool.py path and port
 ESPTOOL		?= /Volumes/esp-open-sdk/esptool/esptool.py

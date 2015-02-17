@@ -13,10 +13,6 @@
 #include "btn_mqtt.h"
 #include "btn_httpd_wifi.h"
 
-
-#include "driver/uart.h"
-#include "wifi.h"
-#include "config.h"
 #include "debug.h"
 #include "gpio.h"
 #include "user_interface.h"
@@ -24,6 +20,11 @@
 //HTTPD
 #include "stdout.h"
 #include "httpd.h"
+
+#define BTN_TASK_PRIO        		1
+#define BTN_TASK_QUEUE_SIZE         1
+
+os_event_t btn_procTaskQueue[BTN_TASK_QUEUE_SIZE];
 
 HttpdBuiltInUrl builtInUrls[]={
     {"/", cgiRedirect, "/wifi.tpl"},
@@ -57,4 +58,6 @@ void user_init(void) {
     //Set all pins on shiftreg to 0
     noleds();
     os_printf("\nReady\n");
+    system_os_task(BTN_Task, BTN_TASK_PRIO, btn_procTaskQueue, BTN_TASK_QUEUE_SIZE);
+    flashleds();
 }

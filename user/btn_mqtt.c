@@ -5,14 +5,13 @@
 
 #include "ets_sys.h"
 #include "osapi.h"
-#include "config.h"
 #include "debug.h"
 #include "mqtt.h"
-#include "wifi.h"
 #include "gpio.h"
 #include "mem.h"
+#include "btn_interrupt.h"
 
-
+#define BTN_TASK_PRIO        		1
 
 static ETSTimer btnWiFiLinker;
 
@@ -48,7 +47,8 @@ void ICACHE_FLASH_ATTR mqttConnectedCb(uint32_t *args) {
     
     INFO("MQTT: Connected! subscribe to: %s\r\n", statustopic);
     
-
+    //Arm button pressed
+    init_interupt();
     
 }
 
@@ -83,13 +83,13 @@ void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t to
      {\"DO\":\"NOLED\"}
      {\"DO\":\"FLASHLED\"}
      */
-     if(os_strcmp(dataBuf,"{\"DO\":\"ADDLED\"}")==0) {
+    if(os_strcmp(dataBuf,"{\"DO\":\"ADDLED\"}")==0) {
          if(ledslit!=8) {
              ledslit+=1;
          }
          lightleds(ledslit);
          INFO("ADDLED - Ledslit: %d\n",ledslit);
-     }
+    }
     if(os_strcmp(dataBuf,"{\"DO\":\"REMOVELED\"}")==0) {
         if(ledslit!=0) {
             ledslit-=1;
@@ -103,17 +103,9 @@ void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t to
         INFO("NOLED - Ledslit: %d\n",ledslit);
     }
     if(os_strcmp(dataBuf,"{\"DO\":\"FLASHLED\"}")==0) {
-        int i=0;
-        for(i=0;i<20*2;i++) {
-            ledslit=8;
-            lightleds(ledslit);
-            os_delay_us(500000);
-            ledslit=0;
-            lightleds(ledslit);
-        }
+        system_os_post(BTN_TASK_PRIO, 0, 1);
         INFO("FLASHLED - Ledslit: %d\n",ledslit);
     }
-    lightleds(ledslit);
     os_free(status);
     os_free(dataBuf);
 }
