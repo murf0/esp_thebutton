@@ -22,7 +22,7 @@ SDK_BASE        ?= /Volumes/esp-open-sdk/sdk
 
 #Esptool.py path and port
 ESPTOOL		?= /Volumes/esp-open-sdk/esptool/esptool.py
-ESPPORT		?= /dev/tty.wchusbserial1410
+ESPPORT		?= /dev/tty.wchusbserial14*
 
 # name for the target project
 TARGET		= thebutton
@@ -39,14 +39,18 @@ LIBS		= c gcc hal phy pp net80211 lwip wpa upgrade main ssl
 
 # compiler flags using during compilation of source files
 CFLAGS		= -Os -g -O2 -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH 
+CCFLAGS		+= -ffunction-sections -fno-jump-tables
 ifdef C99
-CFLAGS		= -std=c99 -Os -g -O2 -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH 
+CFLAGS		+= -std=c99
 endif
+
+
 # linker flags used to generate the main object file
 LDFLAGS		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static -DICACHE_FLASH
 
 # linker script used for the above linkier step
-LD_SCRIPT	= eagle.app.v6.ld
+#LD_SCRIPT	= eagle.app.v6.ld
+LD_SCRIPT	= eagle.app.v6.New.ld
 
 # various paths from the SDK used in this project
 SDK_LIBDIR	= lib
@@ -136,8 +140,8 @@ $(BUILD_DIR):
 firmware:
 	$(Q) mkdir -p $@
 
-flash: firmware/0x00000.bin
-	$(vecho) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x3C000 $(BLANKER) 0x40000 firmware/0x40000.bin
+flash: $(FW_FILE) webpages.espfs
+	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x3c000 firmware/0x3c000.bin 0x12000 webpages.espfs
 
 webpages.espfs: html/ mkespfsimage
 	cd html; find . | ../mkespfsimage > ../webpages.espfs; cd ..
@@ -146,9 +150,12 @@ mkespfsimage: lib/esphttpd/mkespfsimage/
 	make -C lib/esphttpd/mkespfsimage
 	mv lib/esphttpd/mkespfsimage/mkespfsimage ./
 
+resetflash:
+	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x7e000 $(BLANKER)
+
 htmlflash: webpages.espfs
 	if [ $$(stat -f '%z' webpages.espfs) -gt $$(( 0x2E000 )) ]; then echo "webpages.espfs too big!"; false; fi
-	$(vecho) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x12000 webpages.espfs
+	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x12000 webpages.espfs
 
 test: flash
 	$(vecho) screen $(ESPPORT) 115200

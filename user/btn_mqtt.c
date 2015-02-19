@@ -11,8 +11,6 @@
 #include "mem.h"
 #include "btn_interrupt.h"
 
-#define BTN_TASK_PRIO        		1
-
 static ETSTimer btnWiFiLinker;
 
 MQTT_Client mqttClient;
@@ -46,10 +44,7 @@ void ICACHE_FLASH_ATTR mqttConnectedCb(uint32_t *args) {
 	MQTT_Subscribe(client, statustopic, 2);
     
     INFO("MQTT: Connected! subscribe to: %s\r\n", statustopic);
-    
-    //Arm button pressed
-    init_interupt();
-    
+    system_os_task(BTN_Task, BTN_TASK_PRIO, btn_procTaskQueue, BTN_TASK_QUEUE_SIZE);
 }
 
 void ICACHE_FLASH_ATTR mqttDisconnectedCb(uint32_t *args) {
@@ -75,6 +70,7 @@ void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t to
 	dataBuf[data_len] = 0;
 
     INFO("Received on topic: %s ", topicBuf);
+    os_free(topicBuf);
     INFO("Data: %s\n",dataBuf);
     /*PARSE MESSG
      Commands available is: 
@@ -103,17 +99,15 @@ void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t to
         INFO("NOLED - Ledslit: %d\n",ledslit);
     }
     if(os_strcmp(dataBuf,"{\"DO\":\"FLASHLED\"}")==0) {
-        system_os_post(BTN_TASK_PRIO, 0, 1);
+        system_os_post(BTN_TASK_PRIO, 1, 0);
         INFO("FLASHLED - Ledslit: %d\n",ledslit);
     }
-    os_free(status);
     os_free(dataBuf);
 }
 
 void ICACHE_FLASH_ATTR init_mqtt(void) {
     
-    //os_sprintf(mqttcfg.mqtt_host, "%s", "mqtt.murf.se");
-    os_sprintf(mqttcfg.mqtt_host, "%s", "192.168.0.110");
+    os_sprintf(mqttcfg.mqtt_host, "%s", "mqtt.murf.se");
     os_sprintf(mqttcfg.mqtt_user, "%s", "thebutton");
     os_sprintf(mqttcfg.mqtt_pass, "%s", "thebutton");
     INFO("CHIPID: %08X\n",system_get_chip_id());
@@ -126,8 +120,6 @@ void ICACHE_FLASH_ATTR init_mqtt(void) {
     
     INFO("ClientId: %s UserID: %s Password: %s Keepalive: %d\n ", mqttcfg.client_id, mqttcfg.mqtt_user, mqttcfg.mqtt_pass, mqttcfg.mqtt_keepalive);
 	MQTT_InitClient(&mqttClient, mqttcfg.client_id, mqttcfg.mqtt_user, mqttcfg.mqtt_pass, mqttcfg.mqtt_keepalive, 1);
-    
-	//MQTT_InitLWT(&mqttClient, "/lwt", "offline", 0, 0);
 	MQTT_OnConnected(&mqttClient, mqttConnectedCb);
 	MQTT_OnDisconnected(&mqttClient, mqttDisconnectedCb);
 	MQTT_OnPublished(&mqttClient, mqttPublishedCb);
@@ -139,6 +131,4 @@ void ICACHE_FLASH_ATTR init_mqtt(void) {
     os_timer_disarm(&btnWiFiLinker);
     os_timer_setfn(&btnWiFiLinker, (os_timer_func_t *)wifiConnectCb, NULL);
     os_timer_arm(&btnWiFiLinker, 2000, 0);
-    
-
 }

@@ -2,31 +2,32 @@ README
 
 Disclaimer: I’m not a professional, I hack around trying to get “the” stuff to work. C is really REALLY hard. I would like feedback! and thank you!
 
-git clone
-Checkout Submodules
+Clone project: 
+git clone https://github.com/murf0/esp_mqtt.git
+
+Checkout Submodules:
 git submodule init
 git submodule update
 
-Patch mkespfsimage: cd lib && patch -p0 < ../mkespfsimage.patch && cd ..
+Patch mkespfsimage:
+cd lib && patch -p0 < mkespfsimage.patch && cd ..
 
-Build:
-./build.sh
+Copy New LD file:
+cp eagle.app.v6.New.ld /Volumes/esp-open-sdk/sdk/ld/
 
-Flash:
-./flash.sh
-
-Clear out Settings (AP and such)
-Write blank.bin to address 0x7e000
-esptool.py -p /dev/tty.wchusbserial1410 write_flash 0x7e000 ../blank.bin
-
-Update Submodules already checked out and stuff
+Update Submodules:
 git submodule foreach git pull origin master
 
 
-Issues
+Build & Flash:
+./build.sh
+
+Clear out Settings (AP and such):
+Write blank.bin to address 0x7e000
+esptool.py -p /dev/tty.wchusbserial1410 write_flash 0x7e000 ../blank.bin
+
+Update Submodules:
+git submodule foreach git pull origin master
+
+Issues:
 Lots and lots of stuff isn't is actually working...
-
-
-MQTT
-
-Serverside

@@ -44,20 +44,13 @@ void user_init(void) {
     os_delay_us(1000);
     INFO("\n\n");
     btnSetSoftAP();
-    INFO("\nIOINIT\n");
-    ioInit();
-
     INFO("\nINITHTTPD\n");
     httpdInit(builtInUrls, 80);
     INFO("\ninitmqtt\n");
     init_mqtt();
-    //Hook button
-    init_interupt();
-    //Initiate Shift Reg
-    initShiftIO();
+    INFO("\btnInitIO\n");
+    btnInitIO();
     //Set all pins on shiftreg to 0
     noleds();
     os_printf("\nReady\n");
-    system_os_task(BTN_Task, BTN_TASK_PRIO, btn_procTaskQueue, BTN_TASK_QUEUE_SIZE);
-    flashleds();
 }
