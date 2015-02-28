@@ -54,6 +54,7 @@ void ICACHE_FLASH_ATTR flashleds() {
     }
     lightleds(0);
 }
+/* Im thinking.... I want a shiftout bitbangin function.
 void ICACHE_FLASH_ATTR shiftOut(unsigned char inputData) {
     unsigned char i;					// Counter
     unsigned char tempShift;
@@ -75,4 +76,5 @@ void ICACHE_FLASH_ATTR shiftOut(unsigned char inputData) {
     PORTB |= (1 << latchPin);			// Enable storage -> output 7 seg
     PORTB &= ~(1 << latchPin);			// Disable storage
 }
+ */
 
