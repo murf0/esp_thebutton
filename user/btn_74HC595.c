@@ -54,5 +54,25 @@ void ICACHE_FLASH_ATTR flashleds() {
     }
     lightleds(0);
 }
-
+void ICACHE_FLASH_ATTR shiftOut(unsigned char inputData) {
+    unsigned char i;					// Counter
+    unsigned char tempShift;
+    
+    for(i=0; i<8; i++9) {		// Cycle 8 times (byte)
+        tempShift = inputData & 0x80;
+        
+        if(tempShift == 0x80){ 			// Shift out Data MSB first
+            PORTB |= (1 << dataPin);	// Set dataPin HIGH
+        } else {
+            PORTB &= ~(1 << dataPin);	// Set dataPin LOW
+        }
+        PORTB |= (1 << shiftPin);		// Set clockPin HIGH
+        PORTB &= ~(1 << shiftPin);		// set clockPin LOW
+        
+        inputData = inputData << 1;		// Shift Data one bit left
+    }
+    
+    PORTB |= (1 << latchPin);			// Enable storage -> output 7 seg
+    PORTB &= ~(1 << latchPin);			// Disable storage
+}
 

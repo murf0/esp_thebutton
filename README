@@ -1,33 +1,48 @@
-README
+***esp_thebutton***
+==========
+https://thebutton.se
 
-Disclaimer: I’m not a professional, I hack around trying to get “the” stuff to work. C is really REALLY hard. I would like feedback! and thank you!
+**Features:**
+* Sending messages when button is pressed
+* Receiving messages adding and removing LEDS 
 
+**Building:**
 Clone project: 
+```bash
 git clone https://github.com/murf0/esp_mqtt.git
-
+```
 Checkout Submodules:
+```bash
 git submodule init
 git submodule update
+```
 
 Patch mkespfsimage:
+```bash
 cd lib && patch -p0 < mkespfsimage.patch && cd ..
-
+```
 Copy New LD file:
+```bash
 cp eagle.app.v6.New.ld /Volumes/esp-open-sdk/sdk/ld/
-
-Update Submodules:
-git submodule foreach git pull origin master
-
+```
 
 Build & Flash:
+```bash
 ./build.sh
+```
+
+Update Submodules:
+```bash
+git submodule foreach git pull origin master
+```
+
 
 Clear out Settings (AP and such):
 Write blank.bin to address 0x7e000
+```bash
 esptool.py -p /dev/tty.wchusbserial1410 write_flash 0x7e000 ../blank.bin
-
-Update Submodules:
-git submodule foreach git pull origin master
+```
 
 Issues:
-Lots and lots of stuff isn't is actually working...
+* Random Reboots.
+* java_thebutton isn't finished.
