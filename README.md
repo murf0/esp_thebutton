@@ -21,10 +21,6 @@ Patch mkespfsimage:
 ```bash
 cd lib && patch -p0 < mkespfsimage.patch && cd ..
 ```
-Copy New LD file:
-```bash
-cp eagle.app.v6.New.ld /Volumes/esp-open-sdk/sdk/ld/
-```
 
 Build & Flash:
 ```bash

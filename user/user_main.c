@@ -21,11 +21,12 @@
 #include "stdout.h"
 #include "httpd.h"
 
+/*
 #define BTN_TASK_PRIO        		1
 #define BTN_TASK_QUEUE_SIZE         1
 
 os_event_t btn_procTaskQueue[BTN_TASK_QUEUE_SIZE];
-
+*/
 HttpdBuiltInUrl builtInUrls[]={
     {"/", cgiRedirect, "/wifi.tpl"},
     {"/wifiscan.cgi", cgiWiFiScan, NULL},
@@ -42,15 +43,16 @@ HttpdBuiltInUrl builtInUrls[]={
 void user_init(void) {
     stdoutInit();
     os_delay_us(1000);
-    INFO("\n\n");
     btnSetSoftAP();
     INFO("\nINITHTTPD\n");
     httpdInit(builtInUrls, 80);
     INFO("\ninitmqtt\n");
     init_mqtt();
-    INFO("\btnInitIO\n");
+    INFO("\nbtnInitIO\n");
     btnInitIO();
     //Set all pins on shiftreg to 0
     noleds();
     os_printf("\nReady\n");
+    system_print_meminfo();
+    INFO("FREE HEAP: %d\n",system_get_free_heap_size());
 }

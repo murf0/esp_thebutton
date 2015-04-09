@@ -20,15 +20,15 @@ MQTTCFG mqttcfg;
 int ledslit=0;
 
 void ICACHE_FLASH_ATTR wifiConnectCb(uint8_t status) {
-    
-
     os_timer_disarm(&btnWiFiLinker);
     if(wifi_station_get_connect_status() == STATION_GOT_IP){
         MQTT_Connect(&mqttClient);
         INFO("****************\nTIMER: Connect MQTT\n****************\n");
+        INFO("FREE HEAP: %d\n",system_get_free_heap_size());
     } else {
         MQTT_Disconnect(&mqttClient);
         INFO("TIMER: Disconnect MQTT\n");
+        INFO("FREE HEAP: %d\n",system_get_free_heap_size());
         os_timer_setfn(&btnWiFiLinker, (os_timer_func_t *)wifiConnectCb, NULL);
         os_timer_arm(&btnWiFiLinker, 2000, 0);
     }
@@ -36,14 +36,13 @@ void ICACHE_FLASH_ATTR wifiConnectCb(uint8_t status) {
 
 void ICACHE_FLASH_ATTR mqttConnectedCb(uint32_t *args) {
 	MQTT_Client* client = (MQTT_Client*)args;
-    char temp[64];
-    char temperature[128];
     os_sprintf(registertopic,"thebutton/cb/%s/register",mqttcfg.client_id);
     os_sprintf(statustopic,"thebutton/cb/%s/set",mqttcfg.client_id);
 
 	MQTT_Subscribe(client, statustopic, 2);
     
     INFO("MQTT: Connected! subscribe to: %s\r\n", statustopic);
+    //flashleds();
     system_os_task(BTN_Task, BTN_TASK_PRIO, btn_procTaskQueue, BTN_TASK_QUEUE_SIZE);
 }
 
@@ -62,7 +61,7 @@ void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t to
 			*dataBuf = (char*)os_zalloc(data_len+1);
 	MQTT_Client* client = (MQTT_Client*)args;
     int i;
-    char *tmp_gpios, *status, *out,*temp, *clean;
+    //char *tmp_gpios, *status, *out,*temp, *clean;
     
 	os_memcpy(topicBuf, topic, topic_len);
 	topicBuf[topic_len] = 0;
@@ -103,6 +102,7 @@ void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t to
         INFO("FLASHLED - Ledslit: %d\n",ledslit);
     }
     os_free(dataBuf);
+    os_free(topicBuf);
 }
 
 void ICACHE_FLASH_ATTR init_mqtt(void) {
