@@ -43,9 +43,6 @@ make hardresetflash
 ```
 to clear out AP-settings also
 
-Issues:
-* Random Reboots.
-* java_thebutton isn't finished.
 
 FAQ:
 
