@@ -42,3 +42,14 @@ esptool.py -p /dev/tty.wchusbserial1410 write_flash 0x7e000 ../blank.bin
 Issues:
 * Random Reboots.
 * java_thebutton isn't finished.
+
+FAQ:
+if you're getting the error at initmqtt: 
+```
+client handshake start.
+No heap available, failed to malloc 2064
+Fatal exception (29):
+epc1=0x4000e1b2, epc2=0x00000000, epc3=0x00000000, excvaddr=0x00000004, depc=0x00000000
+```
+Then the ssl-certificate is more than 1024 bits..
+(i've successfully used 2048bits, 4096 fails)

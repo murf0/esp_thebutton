@@ -35,14 +35,14 @@ ifdef BUTTON
 # name for the target project
 TARGET	= thebutton
 MODULES	=  driver user lib/mqtt/mqtt lib/esphttpd/espfs lib/esphttpd/httpd 
-CFLAGS	= -Os -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
+CFLAGS	= -g -O2 -Os -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
 endif
 
 ifdef MQTT
 # name for the target project
 TARGET		= mqttlib
 MODULES	=  lib/mqtt/mqtt 
-CFLAGS	= -Os -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
+CFLAGS	= -g -O2 -Os -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
 LDSKIP = true
 endif
 
@@ -54,6 +54,8 @@ CFLAGS	= -Os -ggdb  -std=c99 -Werror -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-
 		-nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH -D_STDINT_H \
 		-Wno-address -DESPFS_POS=$(ESPFS_POS) -DESPFS_SIZE=$(ESPFS_SIZE)
 LDSKIP = true
+CFLAGS		+= -DGZIP_COMPRESSION
+
 endif
 
 EXTRA_INCDIR	= include $(SDK_BASE)/../include lib/heatshrink lib/esphttpd/include lib/esphttpd/httpd lib/esphttpd/espfs lib/esphttpd/user lib/mqtt/include lib/mqtt/mqtt
@@ -171,7 +173,10 @@ flash: $(FW_FILE) webpages.espfs
 	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x3c000 firmware/0x3c000.bin $(ESPFS_POS) webpages.espfs
 
 webpages.espfs: html/ mkespfsimage
-	cd html; find . | ../mkespfsimage > ../webpages.espfs; cd ..
+	$(Q) rm -rf html_compressed;
+	$(Q) cp -r html html_compressed;
+	$(Q) cd html_compressed; find . -type f \( -name "*.css" -o -name "*.js" -o -name "*.html" \) -exec sh -c "gzip --best -n {}; mv {}.gz {}" \;; cd ..;
+	$(Q) cd html_compressed; find . | ../mkespfsimage > ../webpages.espfs; cd ..;
 
 mkespfsimage: lib/esphttpd/espfs/mkespfsimage/
 	make -C lib/esphttpd/espfs/mkespfsimage

@@ -17,11 +17,27 @@
 #include "esphttpd.h"
 
 
-void ICACHE_FLASH_ATTR btnTplWlan(HttpdConnData *connData, char *token, void **arg) {
+void ICACHE_FLASH_ATTR btnSetSoftAP() {
+    int x=wifi_get_opmode();
+    if (x==3 || x==2) {
+        static struct softap_config config;
+        wifi_softap_get_config(&config);
+        INFO("Current SOFTAP APName: %s\n",config.ssid);
+        os_sprintf(config.ssid,"TheButton_%08X", system_get_chip_id());
+        config.ssid_len=os_strlen(config.ssid);
+        wifi_softap_set_config(&config);
+        INFO("New SOFTAP APName: %s\n",config.ssid);
+        wifi_set_opmode(3);
+    } else {
+        INFO("Not SOFTAP");
+    }
+}
+
+int ICACHE_FLASH_ATTR btnTplWlan(HttpdConnData *connData, char *token, void **arg) {
     char buff[1024];
     int x;
     static struct station_config stconf;
-    if (token==NULL) return;
+    if (token==NULL) return HTTPD_CGI_DONE;
     wifi_station_get_config(&stconf);
     
     os_strcpy(buff, "Unknown");
@@ -49,21 +65,8 @@ void ICACHE_FLASH_ATTR btnTplWlan(HttpdConnData *connData, char *token, void **a
         }
     }
     httpdSend(connData, buff, -1);
-    os_free(buff);
+    return HTTPD_CGI_DONE;
 }
-void ICACHE_FLASH_ATTR btnSetSoftAP() {
-    int x=wifi_get_opmode();
-    if (x==3 || x==2) {
-        static struct softap_config config;
-        wifi_softap_get_config(&config);
-        INFO("Current SOFTAP APName: %s\n",config.ssid);
-        os_sprintf(config.ssid,"TheButton_%08X", system_get_chip_id());
-        config.ssid_len=os_strlen(config.ssid);
-        wifi_softap_set_config(&config);
-        INFO("New SOFTAP APName: %s\n",config.ssid);
-        wifi_set_opmode(3);
-    } else {
-        INFO("Not SOFTAP");
-    }
-}
+
+
 

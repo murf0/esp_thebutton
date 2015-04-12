@@ -42,13 +42,11 @@ HttpdBuiltInUrl builtInUrls[]={
 //Main routine. Initialize stdout, the I/O and the webserver and we're done.
 void user_init(void) {
     stdoutInit();
-    os_delay_us(1000);
+    os_delay_us(500000);
     btnSetSoftAP();
-    int x=wifi_get_opmode();
-    if (x==3 || x==2) {
-        INFO("\nINITHTTPD\n");
-        httpdInit(builtInUrls, 80);
-    }
+    INFO("\nINITHTTPD\n");
+    espFsInit((void*)(0x40200000 + 0x12000));
+    httpdInit(builtInUrls, 80);
     INFO("\ninitmqtt\n");
     init_mqtt();
     INFO("\nbtnInitIO\n");
