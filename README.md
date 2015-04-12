@@ -34,16 +34,21 @@ git submodule foreach git pull origin master
 
 
 Clear out Settings (AP and such):
-Write blank.bin to address 0x7e000
 ```bash
-esptool.py -p /dev/tty.wchusbserial1410 write_flash 0x7e000 ../blank.bin
+make resetflash
 ```
+or
+```
+make hardresetflash
+```
+to clear out AP-settings also
 
 Issues:
 * Random Reboots.
 * java_thebutton isn't finished.
 
 FAQ:
+
 if you're getting the error at initmqtt: 
 ```
 client handshake start.
