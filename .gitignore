@@ -32,5 +32,6 @@ build/
 firmware/
 mkespfsimage
 webpages.espfs
+htlm_compressed
 
 *.DS_Store
