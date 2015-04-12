@@ -46,13 +46,15 @@ void ICACHE_FLASH_ATTR lightleds(int ledslit) {
 
     
 }
-void ICACHE_FLASH_ATTR flashleds() {
-    int y;
-    for(y=0;y<=8;y++) {
-        os_delay_us(100000);
-        lightleds(y);
-    }
+void ICACHE_FLASH_ATTR flashleds(int times) {
+    int y,i;
+    for(i=1;i<=times;i++) {
+        for(y=0;y<=8;y++) {
+            os_delay_us(100000);
+            lightleds(y);
+        }
     lightleds(0);
+    }
 }
 /* Im thinking.... I want a shiftout bitbangin function.
 void ICACHE_FLASH_ATTR shiftOut(unsigned char inputData) {

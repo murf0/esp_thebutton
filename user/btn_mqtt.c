@@ -42,13 +42,14 @@ void ICACHE_FLASH_ATTR mqttConnectedCb(uint32_t *args) {
 	MQTT_Subscribe(client, statustopic, 2);
     
     INFO("MQTT: Connected! subscribe to: %s\r\n", statustopic);
-    //flashleds();
+    flashleds(2);
     system_os_task(BTN_Task, BTN_TASK_PRIO, btn_procTaskQueue, BTN_TASK_QUEUE_SIZE);
 }
 
 void ICACHE_FLASH_ATTR mqttDisconnectedCb(uint32_t *args) {
 	MQTT_Client* client = (MQTT_Client*)args;
 	INFO("MQTT: Disconnected\r\n");
+    lightleds(8);
 }
 
 void ICACHE_FLASH_ATTR mqttPublishedCb(uint32_t *args) {
@@ -98,7 +99,7 @@ void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t to
         INFO("NOLED - Ledslit: %d\n",ledslit);
     }
     if(os_strcmp(dataBuf,"{\"DO\":\"FLASHLED\"}")==0) {
-        system_os_post(BTN_TASK_PRIO, 1, 0);
+        flashleds(10);
         INFO("FLASHLED - Ledslit: %d\n",ledslit);
     }
     os_free(dataBuf);
