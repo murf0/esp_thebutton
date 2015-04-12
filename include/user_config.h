@@ -2,7 +2,7 @@
 #define _USER_CONFIG_H_
 
 #define CFG_HOLDER	0x00FF55A4	/* Change this value to load default configurations */
-#define CFG_LOCATION	0x3C	/* Please don't change or if you know what you doing */
+#define CFG_LOCATION	0x2C	/* Please don't change or if you know what you doing */
 
 
 /*DEFAULT CONFIGURATIONS*/
@@ -27,11 +27,11 @@
 #define MQTT_ROOT_TOPIC     "NA"
 #define MQTT_USER			"NA"
 #define MQTT_PASS			"NA"
-#define STA_SSID "NA"
-#define STA_PASS "NA"
+#define STA_SSID            "NA"
+#define STA_PASS            "NA"
 #define STA_TYPE AUTH_WPA2_PSK
 #define MQTT_HOST			"NA" 
 #define MQTT_PORT			1000
-#define CLIENT_SSL_ENABLE
+#define CLIENT_SSL_ENABLE   0
 
 #endif

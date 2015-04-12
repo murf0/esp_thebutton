@@ -26,22 +26,44 @@ ESPPORT		?= /dev/tty.wchusbserial14*
 # name for the target project
 TARGET		= thebutton
 
+#Position and maximum length of espfs in flash memory
+ESPFS_POS = 0x12000
+ESPFS_SIZE = 0x2E000
+
 # which modules (subdirectories) of the project to include in compiling
-MODULES	= user lib/esphttpd/user lib/mqtt/mqtt  driver 
-ifdef C99
-MODULES	= lib/esphttpd/user
+ifdef BUTTON
+# name for the target project
+TARGET	= thebutton
+MODULES	=  driver user lib/mqtt/mqtt lib/esphttpd/espfs lib/esphttpd/httpd 
+CFLAGS	= -Os -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
 endif
-EXTRA_INCDIR	= include $(SDK_BASE)/../include lib/heatshrink lib/esphttpd/include lib/esphttpd/user lib/mqtt/include lib/mqtt/mqtt
+
+ifdef MQTT
+# name for the target project
+TARGET		= mqttlib
+MODULES	=  lib/mqtt/mqtt 
+CFLAGS	= -Os -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
+LDSKIP = true
+endif
+
+ifdef HTTPD
+# name for the target project
+TARGET		= httpdlib
+MODULES	=  lib/esphttpd/espfs lib/esphttpd/httpd lib/esphttpd/user 
+CFLAGS	= -Os -ggdb  -std=c99 -Werror -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-inline-functions \
+		-nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH -D_STDINT_H \
+		-Wno-address -DESPFS_POS=$(ESPFS_POS) -DESPFS_SIZE=$(ESPFS_SIZE)
+LDSKIP = true
+endif
+
+EXTRA_INCDIR	= include $(SDK_BASE)/../include lib/heatshrink lib/esphttpd/include lib/esphttpd/httpd lib/esphttpd/espfs lib/esphttpd/user lib/mqtt/include lib/mqtt/mqtt
 
 # libraries used in this project, mainly provided by the SDK
 LIBS		= c gcc hal phy pp net80211 lwip wpa upgrade main ssl
 
 # compiler flags using during compilation of source files
-CFLAGS		= -Os -g -O2 -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH 
 CCFLAGS		+= -ffunction-sections -fno-jump-tables
-ifdef C99
-CFLAGS		+= -std=c99
-endif
+
 
 
 # linker flags used to generate the main object file
@@ -121,16 +143,21 @@ all: checkdirs $(TARGET_OUT) $(FW_FILE)
 endif
 
 $(FW_FILE): $(TARGET_OUT)
+ifndef LDSKIP
 	$(vecho) "FW $@"
 	$(Q) $(FW_TOOL) $(FW_FILE_ARGS) $(TARGET_OUT) 
+endif
 
 $(TARGET_OUT): $(APP_AR)
+ifndef LDSKIP
 	$(vecho) "LD $@"
 	$(Q) $(LD) -L$(SDK_LIBDIR) $(LD_SCRIPT) $(LDFLAGS) -Wl,--start-group $(LIBS) $(APP_AR) -Wl,--end-group -o $@
-
+endif
 $(APP_AR): $(OBJ)
+ifndef LDSKIP
 	$(vecho) "AR $@"
 	$(Q) $(AR) cru $@ $^
+endif
 
 checkdirs: $(BUILD_DIR) $(FW_BASE)
 
@@ -146,12 +173,15 @@ flash: $(FW_FILE) webpages.espfs
 webpages.espfs: html/ mkespfsimage
 	cd html; find . | ../mkespfsimage > ../webpages.espfs; cd ..
 
-mkespfsimage: lib/esphttpd/mkespfsimage/
-	make -C lib/esphttpd/mkespfsimage
-	mv lib/esphttpd/mkespfsimage/mkespfsimage ./
+mkespfsimage: lib/esphttpd/espfs/mkespfsimage/
+	make -C lib/esphttpd/espfs/mkespfsimage
+	mv lib/esphttpd/espfs/mkespfsimage/mkespfsimage ./
+
+hardresetflash:
+	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x7e000 $(BLANKER) 0x00000 $(BLANKER) 0x3c000 $(BLANKER) 0x12000 $(BLANKER) 0x2c000 $(BLANKER)
 
 resetflash:
-	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x7e000 $(BLANKER)
+	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 $(BLANKER) 0x3c000 $(BLANKER) 0x12000 $(BLANKER) 0x2c000 $(BLANKER)
 
 htmlflash: webpages.espfs
 	if [ $$(stat -f '%z' webpages.espfs) -gt $$(( 0x2E000 )) ]; then echo "webpages.espfs too big!"; false; fi

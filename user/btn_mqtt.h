@@ -13,7 +13,6 @@ typedef struct{
     uint8_t client_id[16];
     uint32_t mqtt_keepalive;
     uint8_t security;
-    
 } MQTTCFG;
 
 char registertopic[64];

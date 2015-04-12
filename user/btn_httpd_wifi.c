@@ -4,10 +4,10 @@
 * Adaptation Murf
  */
 
-#include <string.h>
-#include <osapi.h>
+#include "string.h"
+#include "osapi.h"
 
-#include "ets_sys.h"
+
 
 #include "user_interface.h"
 #include "mem.h"
@@ -49,6 +49,7 @@ void ICACHE_FLASH_ATTR btnTplWlan(HttpdConnData *connData, char *token, void **a
         }
     }
     httpdSend(connData, buff, -1);
+    os_free(buff);
 }
 void ICACHE_FLASH_ATTR btnSetSoftAP() {
     int x=wifi_get_opmode();

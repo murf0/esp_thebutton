@@ -44,8 +44,11 @@ void user_init(void) {
     stdoutInit();
     os_delay_us(1000);
     btnSetSoftAP();
-    INFO("\nINITHTTPD\n");
-    httpdInit(builtInUrls, 80);
+    int x=wifi_get_opmode();
+    if (x==3 || x==2) {
+        INFO("\nINITHTTPD\n");
+        httpdInit(builtInUrls, 80);
+    }
     INFO("\ninitmqtt\n");
     init_mqtt();
     INFO("\nbtnInitIO\n");
