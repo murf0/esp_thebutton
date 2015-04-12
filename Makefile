@@ -168,7 +168,7 @@ firmware:
 	$(Q) mkdir -p $@
 
 flash: $(FW_FILE) webpages.espfs
-	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x3c000 firmware/0x3c000.bin 0x12000 webpages.espfs
+	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x3c000 firmware/0x3c000.bin $(ESPFS_POS) webpages.espfs
 
 webpages.espfs: html/ mkespfsimage
 	cd html; find . | ../mkespfsimage > ../webpages.espfs; cd ..
@@ -178,7 +178,7 @@ mkespfsimage: lib/esphttpd/espfs/mkespfsimage/
 	mv lib/esphttpd/espfs/mkespfsimage/mkespfsimage ./
 
 hardresetflash:
-	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x7e000 $(BLANKER) 0x00000 $(BLANKER) 0x3c000 $(BLANKER) 0x12000 $(BLANKER) 0x2c000 $(BLANKER)
+	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x7e000 $(BLANKER) 0x00000 $(BLANKER) 0x3c000 $(BLANKER) $(ESPFS_POS) $(BLANKER) 0x2c000 $(BLANKER)
 
 resetflash:
 	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 $(BLANKER) 0x3c000 $(BLANKER) 0x12000 $(BLANKER) 0x2c000 $(BLANKER)
@@ -200,7 +200,7 @@ clean:
 	$(Q) rm -rf $(FW_BASE)
 	$(Q) rm -f mkespfsimage
 	$(Q) rm -f webpages.espfs
-	$(Q) rm -f lib/esphttpd/mkespfsimage/mkespfsimage
-	$(Q) rm -f lib/esphttpd/mkespfsimage/*.o
+	$(Q) rm -f lib/esphttpd/espfs/mkespfsimage/mkespfsimage
+	$(Q) rm -f lib/esphttpd/espfs/mkespfsimage/*.o
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call compile-objects,$(bdir))))
