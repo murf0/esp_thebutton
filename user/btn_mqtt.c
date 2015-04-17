@@ -38,7 +38,7 @@ void ICACHE_FLASH_ATTR mqttConnectedCb(uint32_t *args) {
 	MQTT_Client* client = (MQTT_Client*)args;
     os_sprintf(registertopic,"thebutton/cb/%s/register",mqttcfg.client_id);
     os_sprintf(statustopic,"thebutton/cb/%s/set",mqttcfg.client_id);
-
+    M
 	MQTT_Subscribe(client, statustopic, 2);
     
     INFO("MQTT: Connected! subscribe to: %s\r\n", statustopic);
@@ -121,6 +121,7 @@ void ICACHE_FLASH_ATTR init_mqtt(void) {
     
     INFO("ClientId: %s UserID: %s Password: %s Keepalive: %d\n ", mqttcfg.client_id, mqttcfg.mqtt_user, mqttcfg.mqtt_pass, mqttcfg.mqtt_keepalive);
 	MQTT_InitClient(&mqttClient, mqttcfg.client_id, mqttcfg.mqtt_user, mqttcfg.mqtt_pass, mqttcfg.mqtt_keepalive, 1);
+    
 	MQTT_OnConnected(&mqttClient, mqttConnectedCb);
 	MQTT_OnDisconnected(&mqttClient, mqttDisconnectedCb);
 	MQTT_OnPublished(&mqttClient, mqttPublishedCb);
