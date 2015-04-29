@@ -53,33 +53,29 @@ void ICACHE_FLASH_ATTR mqttPublishedCb(uint32_t *args) {
 	MQTT_Client* client = (MQTT_Client*)args;
 	INFO("MQTT: Published\r\n");
 }
-
-void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len) {
+void mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len) {
+    char *topicBuf = (char*)os_zalloc(topic_len+1),
+    *dataBuf = (char*)os_zalloc(data_len+1);
     MQTT_Client* client = (MQTT_Client*)args;
-	char *topicBuf = (char*)os_zalloc(topic_len+1), *dataBuf = (char*)os_zalloc(data_len+1);
-    int i;
-    
-	os_memcpy(topicBuf, topic, topic_len);
-	topicBuf[topic_len] = 0;
-	os_memcpy(dataBuf, data, data_len);
-	dataBuf[data_len] = 0;
-
-    INFO("Received on topic: %s ", topicBuf);
-    os_free(topicBuf);
-    INFO("Data: %s\n",dataBuf);
+    os_memcpy(topicBuf, topic, topic_len);
+    topicBuf[topic_len] = 0;
+    os_memcpy(dataBuf, data, data_len);
+    dataBuf[data_len] = 0;
+    INFO("Receive topic: %s, data: %s \r\n", topicBuf, dataBuf);
     /*PARSE MESSG
-     Commands available is: 
+     Commands available is:
      {\"DO\":\"ADDLED\"}
      {\"DO\":\"REMOVELED\"}
      {\"DO\":\"NOLED\"}
      {\"DO\":\"FLASHLED\"}
-     */
+    */
+    //Here we do logic...
     if(os_strcmp(dataBuf,"{\"DO\":\"ADDLED\"}")==0) {
-         if(ledslit!=8) {
-             ledslit+=1;
-         }
-         lightleds(ledslit);
-         INFO("ADDLED - Ledslit: %d\n",ledslit);
+        if(ledslit!=8) {
+            ledslit+=1;
+        }
+        lightleds(ledslit);
+        INFO("ADDLED - Ledslit: %d\n",ledslit);
     } else if(os_strcmp(dataBuf,"{\"DO\":\"REMOVELED\"}")==0) {
         if(ledslit!=0) {
             ledslit-=1;
@@ -94,13 +90,9 @@ void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t to
         flashleds(10);
         INFO("FLASHLED - Ledslit: %d\n",ledslit);
     }
-    INFO("os_free databuf\n");
-    os_free(dataBuf);
-    INFO("os_free topicbuf\n");
+    
     os_free(topicBuf);
-    INFO("os_free done\n");
-    os_delay_us(50000000000);
-    INFO("os_delay_us done\n");
+    os_free(dataBuf);
 }
 
 void ICACHE_FLASH_ATTR init_mqtt(void) {

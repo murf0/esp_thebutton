@@ -27,7 +27,7 @@ void ICACHE_FLASH_ATTR noleds() {
     GPIO_OUTPUT_SET(LatchPin, 0);
     GPIO_OUTPUT_SET(DataPin, 0);
     GPIO_OUTPUT_SET(ClockPin, 0);
-    INFO("NOLEDS done\n");
+    //INFO("NOLEDS done\n");
 }
 
 void ICACHE_FLASH_ATTR lightleds(int ledslit) {
@@ -45,7 +45,7 @@ void ICACHE_FLASH_ATTR lightleds(int ledslit) {
     GPIO_OUTPUT_SET(DataPin, 0);
     GPIO_OUTPUT_SET(ClockPin, 0);
 
-    INFO("LIGHTLEDS %d done\n",ledslit);
+    //INFO("LIGHTLEDS %d done\n",ledslit);
 }
 void ICACHE_FLASH_ATTR flashleds(int times) {
     int y,i;
@@ -56,5 +56,5 @@ void ICACHE_FLASH_ATTR flashleds(int times) {
         }
     lightleds(0);
     }
-    INFO("Flashleds %d done\n",times);
+    //INFO("Flashleds %d done\n",times);
 }

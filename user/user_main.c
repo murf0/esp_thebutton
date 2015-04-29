@@ -50,8 +50,6 @@ void user_init(void) {
     init_mqtt();
     INFO("\nbtnInitIO\n");
     btnInitIO();
-    //Set all pins on shiftreg to 0
-    noleds();
     lightleds(8);
     os_printf("\nReady\n");
     //system_print_meminfo();
