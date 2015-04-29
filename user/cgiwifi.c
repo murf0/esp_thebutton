@@ -48,7 +48,15 @@ typedef struct {
 } ScanResultData;
 
 //Static scan status storage.
-ScanResultData cgiWifiAps;
+static ScanResultData cgiWifiAps;
+
+#define CONNTRY_IDLE 0
+#define CONNTRY_WORKING 1
+#define CONNTRY_SUCCESS 2
+#define CONNTRY_FAIL 3
+//Connection result var
+static int connTryStatus=CONNTRY_IDLE;
+static ETSTimer resetTimer;
 
 //Callback the code calls when a wlan ap scan is done. Basically stores the result in
 //the cgiWifiAps struct.
@@ -148,7 +156,6 @@ int ICACHE_FLASH_ATTR cgiWiFiScan(HttpdConnData *connData) {
 //Temp store for new ap info.
 static struct station_config stconf;
 
-
 //This routine is ran some time after a connection attempt to an access point. If
 //the connect succeeds, this gets the module in STA-only mode.
 static void ICACHE_FLASH_ATTR resetTimerCb(void *arg) {
@@ -159,27 +166,30 @@ static void ICACHE_FLASH_ATTR resetTimerCb(void *arg) {
 		wifi_set_opmode(1);
 		system_restart();
 	} else {
+		connTryStatus=CONNTRY_FAIL;
 		os_printf("Connect fail. Not going into STA-only mode.\n");
 		//Maybe also pass this through on the webpage?
 	}
 }
+
+
 
 //Actually connect to a station. This routine is timed because I had problems
 //with immediate connections earlier. It probably was something else that caused it,
 //but I can't be arsed to put the code back :P
 static void ICACHE_FLASH_ATTR reassTimerCb(void *arg) {
 	int x;
-	static ETSTimer resetTimer;
 	os_printf("Try to connect to AP....\n");
 	wifi_station_disconnect();
 	wifi_station_set_config(&stconf);
 	wifi_station_connect();
 	x=wifi_get_opmode();
+	connTryStatus=CONNTRY_WORKING;
 	if (x!=1) {
 		//Schedule disconnect/connect
 		os_timer_disarm(&resetTimer);
 		os_timer_setfn(&resetTimer, resetTimerCb, NULL);
-		os_timer_arm(&resetTimer, 4000, 0);
+		os_timer_arm(&resetTimer, 15000, 0); //time out after 15 secs of trying to connect
 	}
 }
 
@@ -210,7 +220,7 @@ int ICACHE_FLASH_ATTR cgiWiFiConnect(HttpdConnData *connData) {
 #ifdef DEMO_MODE
 	httpdRedirect(connData, "/wifi");
 #else
-	os_timer_arm(&reassTimer, 1000, 0);
+	os_timer_arm(&reassTimer, 500, 0);
 	httpdRedirect(connData, "connecting.html");
 #endif
 	return HTTPD_CGI_DONE;
@@ -229,13 +239,44 @@ int ICACHE_FLASH_ATTR cgiWiFiSetMode(HttpdConnData *connData) {
 
 	len=httpdFindArg(connData->getArgs, "mode", buff, sizeof(buff));
 	if (len!=0) {
-		os_printf("cgiWiFiSetMode: %s\n", buff);
+		os_printf("cgiWifiSetMode: %s\n", buff);
 #ifndef DEMO_MODE
 		wifi_set_opmode(atoi(buff));
 		system_restart();
 #endif
 	}
 	httpdRedirect(connData, "/wifi");
+	return HTTPD_CGI_DONE;
+}
+
+int ICACHE_FLASH_ATTR cgiWiFiConnStatus(HttpdConnData *connData) {
+	char buff[1024];
+	int len;
+	struct ip_info info;
+	int st=wifi_station_get_connect_status();
+	httpdStartResponse(connData, 200);
+	httpdHeader(connData, "Content-Type", "text/json");
+	httpdEndHeaders(connData);
+	if (connTryStatus==CONNTRY_IDLE) {
+		len=os_sprintf(buff, "{\n \"status\": \"idle\"\n }\n");
+	} else if (connTryStatus==CONNTRY_WORKING || connTryStatus==CONNTRY_SUCCESS) {
+		if (st==STATION_GOT_IP) {
+			wifi_get_ip_info(0, &info);
+			len=os_sprintf(buff, "{\n \"status\": \"success\",\n \"ip\": \"%d.%d.%d.%d\" }\n", 
+				(info.ip.addr>>0)&0xff, (info.ip.addr>>8)&0xff, 
+				(info.ip.addr>>16)&0xff, (info.ip.addr>>24)&0xff);
+			//Reset into AP-only mode sooner.
+			os_timer_disarm(&resetTimer);
+			os_timer_setfn(&resetTimer, resetTimerCb, NULL);
+			os_timer_arm(&resetTimer, 1000, 0);
+		} else {
+			len=os_sprintf(buff, "{\n \"status\": \"working\"\n }\n");
+		}
+	} else {
+		len=os_sprintf(buff, "{\n \"status\": \"fail\"\n }\n");
+	}
+
+	httpdSend(connData, buff, len);
 	return HTTPD_CGI_DONE;
 }
 

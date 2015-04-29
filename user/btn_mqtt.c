@@ -99,6 +99,8 @@ void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t to
     INFO("os_free topicbuf\n");
     os_free(topicBuf);
     INFO("os_free done\n");
+    os_delay_us(50000000000);
+    INFO("os_delay_us done\n");
 }
 
 void ICACHE_FLASH_ATTR init_mqtt(void) {

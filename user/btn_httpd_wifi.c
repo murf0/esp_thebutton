@@ -18,8 +18,6 @@
 
 
 void ICACHE_FLASH_ATTR btnSetSoftAP() {
-    int x=wifi_get_opmode();
-    if (x==3 || x==2) {
         static struct softap_config config;
         wifi_softap_get_config(&config);
         INFO("Current SOFTAP APName: %s\n",config.ssid);
@@ -28,9 +26,6 @@ void ICACHE_FLASH_ATTR btnSetSoftAP() {
         wifi_softap_set_config(&config);
         INFO("New SOFTAP APName: %s\n",config.ssid);
         wifi_set_opmode(3);
-    } else {
-        INFO("Not SOFTAP");
-    }
 }
 
 int ICACHE_FLASH_ATTR btnTplWlan(HttpdConnData *connData, char *token, void **arg) {

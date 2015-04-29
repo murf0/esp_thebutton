@@ -21,12 +21,6 @@
 #include "stdout.h"
 #include "httpd.h"
 
-/*
-#define BTN_TASK_PRIO        		1
-#define BTN_TASK_QUEUE_SIZE         1
-
-os_event_t btn_procTaskQueue[BTN_TASK_QUEUE_SIZE];
-*/
 HttpdBuiltInUrl builtInUrls[]={
     {"/", cgiRedirect, "/wifi.tpl"},
     {"/wifiscan.cgi", cgiWiFiScan, NULL},
@@ -43,10 +37,15 @@ HttpdBuiltInUrl builtInUrls[]={
 void user_init(void) {
     stdoutInit();
     os_delay_us(500000);
-    btnSetSoftAP();
-    INFO("\nINITHTTPD\n");
-    espFsInit((void*)(0x40200000 + 0x12000));
-    httpdInit(builtInUrls, 80);
+    int x=wifi_get_opmode();
+    if (x==3 || x==2) {
+        btnSetSoftAP();
+        INFO("\nINITHTTPD\n");
+        espFsInit((void*)(0x40200000 + 0x12000));
+        httpdInit(builtInUrls, 80);
+    } else {
+        INFO("Not SOFTAP, Not initating Httpd");
+    }
     INFO("\ninitmqtt\n");
     init_mqtt();
     INFO("\nbtnInitIO\n");

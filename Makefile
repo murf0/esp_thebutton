@@ -51,8 +51,8 @@ ifdef HTTPD
 TARGET		= httpdlib
 MODULES	=  lib/esphttpd/espfs lib/esphttpd/httpd lib/esphttpd/user 
 CFLAGS	= -Os -ggdb  -std=c99 -Werror -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-inline-functions \
-		-nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH -D_STDINT_H \
-		-Wno-address -DESPFS_POS=$(ESPFS_POS) -DESPFS_SIZE=$(ESPFS_SIZE)
+		-nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH \
+		-Wno-address -DESPFS_POS=$(ESPFS_POS) -DESPFS_SIZE=$(ESPFS_SIZE) -DESPFS_HEATSHRINK
 LDSKIP = true
 CFLAGS		+= -DGZIP_COMPRESSION
 
