@@ -32,7 +32,7 @@ HttpdBuiltInUrl builtInUrls[]={
     {"/wifiscan.cgi", cgiWiFiScan, NULL},
     {"/wifi.tpl", cgiEspFsTemplate, btnTplWlan},
     {"/connect.cgi", cgiWiFiConnect, NULL},
-    {"/setmode.cgi", cgiWifiSetMode, NULL},
+    {"/setmode.cgi", cgiWiFiSetMode, NULL},
     
     {"*", cgiEspFsHook, NULL}, //Catch-all cgi function for the filesystem
     {NULL, NULL, NULL}
@@ -53,7 +53,8 @@ void user_init(void) {
     btnInitIO();
     //Set all pins on shiftreg to 0
     noleds();
+    lightleds(8);
     os_printf("\nReady\n");
-    system_print_meminfo();
-    INFO("FREE HEAP: %d\n",system_get_free_heap_size());
+    //system_print_meminfo();
+    //INFO("FREE HEAP: %d\n",system_get_free_heap_size());
 }

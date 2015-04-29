@@ -218,7 +218,7 @@ int ICACHE_FLASH_ATTR cgiWiFiConnect(HttpdConnData *connData) {
 
 //This cgi uses the routines above to connect to a specific access point with the
 //given ESSID using the given password.
-int ICACHE_FLASH_ATTR cgiWifiSetMode(HttpdConnData *connData) {
+int ICACHE_FLASH_ATTR cgiWiFiSetMode(HttpdConnData *connData) {
 	int len;
 	char buff[1024];
 	
@@ -229,7 +229,7 @@ int ICACHE_FLASH_ATTR cgiWifiSetMode(HttpdConnData *connData) {
 
 	len=httpdFindArg(connData->getArgs, "mode", buff, sizeof(buff));
 	if (len!=0) {
-		os_printf("cgiWifiSetMode: %s\n", buff);
+		os_printf("cgiWiFiSetMode: %s\n", buff);
 #ifndef DEMO_MODE
 		wifi_set_opmode(atoi(buff));
 		system_restart();

@@ -13,9 +13,6 @@
 
 static ETSTimer btnWiFiLinker;
 
-MQTT_Client mqttClient;
-char registertopic[64];
-char statustopic[64];
 MQTTCFG mqttcfg;
 int ledslit=0;
 
@@ -24,11 +21,11 @@ void ICACHE_FLASH_ATTR wifiConnectCb(uint8_t status) {
     if(wifi_station_get_connect_status() == STATION_GOT_IP){
         MQTT_Connect(&mqttClient);
         INFO("****************\nTIMER: Connect MQTT\n****************\n");
-        INFO("FREE HEAP: %d\n",system_get_free_heap_size());
+        //INFO("FREE HEAP: %d\n",system_get_free_heap_size());
     } else {
         MQTT_Disconnect(&mqttClient);
         INFO("TIMER: Disconnect MQTT\n");
-        INFO("FREE HEAP: %d\n",system_get_free_heap_size());
+        //INFO("FREE HEAP: %d\n",system_get_free_heap_size());
         os_timer_setfn(&btnWiFiLinker, (os_timer_func_t *)wifiConnectCb, NULL);
         os_timer_arm(&btnWiFiLinker, 2000, 0);
     }
@@ -38,7 +35,7 @@ void ICACHE_FLASH_ATTR mqttConnectedCb(uint32_t *args) {
 	MQTT_Client* client = (MQTT_Client*)args;
     os_sprintf(registertopic,"thebutton/cb/%s/register",mqttcfg.client_id);
     os_sprintf(statustopic,"thebutton/cb/%s/set",mqttcfg.client_id);
-    M
+    
 	MQTT_Subscribe(client, statustopic, 2);
     
     INFO("MQTT: Connected! subscribe to: %s\r\n", statustopic);
@@ -58,11 +55,9 @@ void ICACHE_FLASH_ATTR mqttPublishedCb(uint32_t *args) {
 }
 
 void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len) {
-	char *topicBuf = (char*)os_zalloc(topic_len+1),
-			*dataBuf = (char*)os_zalloc(data_len+1);
-	MQTT_Client* client = (MQTT_Client*)args;
+    MQTT_Client* client = (MQTT_Client*)args;
+	char *topicBuf = (char*)os_zalloc(topic_len+1), *dataBuf = (char*)os_zalloc(data_len+1);
     int i;
-    //char *tmp_gpios, *status, *out,*temp, *clean;
     
 	os_memcpy(topicBuf, topic, topic_len);
 	topicBuf[topic_len] = 0;
@@ -85,29 +80,28 @@ void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t to
          }
          lightleds(ledslit);
          INFO("ADDLED - Ledslit: %d\n",ledslit);
-    }
-    if(os_strcmp(dataBuf,"{\"DO\":\"REMOVELED\"}")==0) {
+    } else if(os_strcmp(dataBuf,"{\"DO\":\"REMOVELED\"}")==0) {
         if(ledslit!=0) {
             ledslit-=1;
         }
         lightleds(ledslit);
         INFO("REMOVELED - Ledslit: %d\n",ledslit);
-    }
-    if(os_strcmp(dataBuf,"{\"DO\":\"NOLED\"}")==0) {
+    } else if(os_strcmp(dataBuf,"{\"DO\":\"NOLED\"}")==0) {
         ledslit=0;
         lightleds(ledslit);
         INFO("NOLED - Ledslit: %d\n",ledslit);
-    }
-    if(os_strcmp(dataBuf,"{\"DO\":\"FLASHLED\"}")==0) {
+    } else if(os_strcmp(dataBuf,"{\"DO\":\"FLASHLED\"}")==0) {
         flashleds(10);
         INFO("FLASHLED - Ledslit: %d\n",ledslit);
     }
+    INFO("os_free databuf\n");
     os_free(dataBuf);
+    INFO("os_free topicbuf\n");
     os_free(topicBuf);
+    INFO("os_free done\n");
 }
 
 void ICACHE_FLASH_ATTR init_mqtt(void) {
-    
     os_sprintf(mqttcfg.mqtt_host, "%s", "mqtt.murf.se");
     os_sprintf(mqttcfg.mqtt_user, "%s", "thebutton");
     os_sprintf(mqttcfg.mqtt_pass, "%s", "thebutton");

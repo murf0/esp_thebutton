@@ -15,8 +15,8 @@ typedef struct{
     uint8_t security;
 } MQTTCFG;
 
-char registertopic[64];
-char statustopic[64];
+char registertopic[128];
+char statustopic[128];
 MQTT_Client mqttClient;
 MQTTCFG mqttcfg;
 
