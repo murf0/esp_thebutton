@@ -13,6 +13,9 @@
 BUILD_BASE	= build
 FW_BASE		= firmware
 
+USE_HEATSHRINK ?= yes
+GZIP_COMPRESSION ?= yes
+
 # Base directory for the compiler
 XTENSA_TOOLS_ROOT ?= /Volumes/esp-open-sdk/xtensa-lx106-elf/bin
 
@@ -47,11 +50,12 @@ LDSKIP = true
 endif
 
 ifdef HTTPD
+
 # name for the target project
 TARGET		= httpdlib
 MODULES	=  lib/esphttpd/espfs lib/esphttpd/httpd lib/esphttpd/user 
 CFLAGS	= -Os -ggdb  -std=c99 -Werror -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-inline-functions \
-		-nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH \
+		-nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH -DGZIP_COMPRESSION\
 		-Wno-address -DESPFS_POS=$(ESPFS_POS) -DESPFS_SIZE=$(ESPFS_SIZE) -DESPFS_HEATSHRINK
 LDSKIP = true
 CFLAGS		+= -DGZIP_COMPRESSION
@@ -173,21 +177,21 @@ flash: $(FW_FILE) webpages.espfs
 	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x3c000 firmware/0x3c000.bin $(ESPFS_POS) webpages.espfs
 
 webpages.espfs: html/ mkespfsimage
-	$(Q) rm -rf html_compressed;
-	$(Q) cp -r html html_compressed;
-	$(Q) cd html_compressed; find . -type f \( -name "*.css" -o -name "*.js" -o -name "*.html" \) -exec sh -c "gzip --best -n {}; mv {}.gz {}" \;; cd ..;
-	$(Q) cd html_compressed; find . | ../mkespfsimage > ../webpages.espfs; cd ..;
+	$(Q) cd html; find . | ../mkespfsimage > ../webpages.espfs; cd ..
 
 mkespfsimage: lib/esphttpd/espfs/mkespfsimage/
-	make -C lib/esphttpd/espfs/mkespfsimage
-	mv lib/esphttpd/espfs/mkespfsimage/mkespfsimage ./
+	$(Q) make -C lib/esphttpd/espfs/mkespfsimage USE_HEATSHRINK="$(USE_HEATSHRINK)" GZIP_COMPRESSION="$(GZIP_COMPRESSION)"
+	$(Q) mv lib/esphttpd/espfs/mkespfsimage/mkespfsimage ./
 
 hardresetflash:
-	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x7e000 $(BLANKER) 0x00000 $(BLANKER) 0x3c000 $(BLANKER) $(ESPFS_POS) $(BLANKER) 0x2c000 $(BLANKER)
+	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x7e000 $(BLANKER) 0x00000 $(BLANKER) 0x3c000 $(BLANKER) $(ESPFS_POS) $(BLANKER) 0x2c000 $(BLANKER)
 
 resetflash:
-	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 $(BLANKER) 0x3c000 $(BLANKER) 0x12000 $(BLANKER) 0x2c000 $(BLANKER)
+	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 $(BLANKER) 0x3c000 $(BLANKER) 0x12000 $(BLANKER) 0x2c000 $(BLANKER)
 
+blankflash:
+	$(Q) $(PYTHON) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash 0x7E000 $(SDK_BASE)/bin/blank.bin
+	
 htmlflash: webpages.espfs
 	if [ $$(stat -f '%z' webpages.espfs) -gt $$(( 0x2E000 )) ]; then echo "webpages.espfs too big!"; false; fi
 	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x12000 webpages.espfs
