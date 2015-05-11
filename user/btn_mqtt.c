@@ -11,36 +11,15 @@
 #include "mem.h"
 #include "btn_interrupt.h"
 
-static ETSTimer btnWiFiLinker;
-
 MQTTCFG mqttcfg;
 int ledslit=0;
-
-void ICACHE_FLASH_ATTR wifiConnectCb(uint8_t status) {
-    os_timer_disarm(&btnWiFiLinker);
-    if(wifi_station_get_connect_status() == STATION_GOT_IP){
-        MQTT_Connect(&mqttClient);
-        INFO("****************\nTIMER: Connect MQTT\n****************\n");
-        //INFO("FREE HEAP: %d\n",system_get_free_heap_size());
-    } else {
-        MQTT_Disconnect(&mqttClient);
-        INFO("TIMER: Disconnect MQTT\n");
-        //INFO("FREE HEAP: %d\n",system_get_free_heap_size());
-        os_timer_setfn(&btnWiFiLinker, (os_timer_func_t *)wifiConnectCb, NULL);
-        os_timer_arm(&btnWiFiLinker, 2000, 0);
-    }
-}
 
 void ICACHE_FLASH_ATTR mqttConnectedCb(uint32_t *args) {
 	MQTT_Client* client = (MQTT_Client*)args;
     os_sprintf(registertopic,"thebutton/cb/%s/register",mqttcfg.client_id);
     os_sprintf(statustopic,"thebutton/cb/%s/set",mqttcfg.client_id);
-    
 	MQTT_Subscribe(client, statustopic, 2);
-    
-    INFO("MQTT: Connected! subscribe to: %s\r\n", statustopic);
     flashleds(2);
-    system_os_task(BTN_Task, BTN_TASK_PRIO, btn_procTaskQueue, BTN_TASK_QUEUE_SIZE);
 }
 
 void ICACHE_FLASH_ATTR mqttDisconnectedCb(uint32_t *args) {
@@ -90,7 +69,6 @@ void mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const cha
         flashleds(10);
         INFO("FLASHLED - Ledslit: %d\n",ledslit);
     }
-    
     os_free(topicBuf);
     os_free(dataBuf);
 }
@@ -115,10 +93,5 @@ void ICACHE_FLASH_ATTR init_mqtt(void) {
 	MQTT_OnPublished(&mqttClient, mqttPublishedCb);
 	MQTT_OnData(&mqttClient, mqttDataCb);
 	
-    //MQTT_Connect(&mqttClient);
-    //Timer to make sure the MQTTclient is connected
-    INFO("MQtt Arm timers?\n");
-    os_timer_disarm(&btnWiFiLinker);
-    os_timer_setfn(&btnWiFiLinker, (os_timer_func_t *)wifiConnectCb, NULL);
-    os_timer_arm(&btnWiFiLinker, 2000, 0);
+    //MQTT connection is handled in the Wifi Callback routine: btn_wifi_handle_event_cb
 }

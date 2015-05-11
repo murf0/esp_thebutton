@@ -19,19 +19,17 @@
 #include "btn_interrupt.h"
 
 
-
-os_event_t btn_procTaskQueue[BTN_TASK_QUEUE_SIZE];
-
 int btnDebounceIncrement=0;
 int btnRegistered=0;
-char temp[64];
+int resetCnt=0;
 
 void btnDebounceCb() {
+    char temp[64];
     if(!GPIO_INPUT_GET(BTNGPIO)) {
         INFO("****************\nTIMER: CHECKDEBOUNCE BTN0 Pressed\n****************\n");
         if(btnRegistered==0) {
             //Send Registermsgs
-            //INFO("Button: Send REGISTER to: %s\r\n", registertopic);
+            INFO("Button: Send REGISTER to: %s\r\n", registertopic);
             os_sprintf(temp,"{\"REGISTER\": \"%s\"}\r\n", mqttcfg.client_id);
             MQTT_Publish(&mqttClient, registertopic, temp, os_strlen(temp), 2, 0);
             btnRegistered=1;
@@ -50,7 +48,6 @@ void btnDebounceCb() {
 }
 
 static void ICACHE_FLASH_ATTR btnResetTimerCb(void *arg) {
-    static int resetCnt=0;
     if (!GPIO_INPUT_GET(BTNGPIO)) {
         resetCnt++;
     } else {
@@ -81,7 +78,7 @@ void ICACHE_FLASH_ATTR btnInitIO(void) {
     GPIO_OUTPUT_SET(13,0); //DS, DataPin
     GPIO_OUTPUT_SET(14,0); //ST_CP, LatchPin
     //gpio_output_set(0, 0, (1<<LEDGPIO), (1<<BTNGPIO));
-    GPIO_OUTPUT_SET(BTNGPIO,1);  //GPIO0 set high to detect.. i dunno. Going to check
+    //GPIO_OUTPUT_SET(BTNGPIO,1);  //GPIO0 set high to detect.. i dunno. Going to check
     
     //Do Reset functionality here instead
     os_timer_disarm(&btnResetTimer);
@@ -92,19 +89,5 @@ void ICACHE_FLASH_ATTR btnInitIO(void) {
     os_timer_disarm(&btnDebounceTimer);
     os_timer_setfn(&btnDebounceTimer, (os_timer_func_t *)btnDebounceCb, NULL);
     os_timer_arm(&btnDebounceTimer, 100, 1);
-}
-void ICACHE_FLASH_ATTR BTN_Task(os_event_t *e) {
-    switch (e->sig) {
-        case 1:
-            flashleds(e->par);
-            break;
-        case 2:
-            noleds();
-            break;
-        case 3:
-            lightleds(e->par);
-            break;
-        default:
-            break;
-    }
+    
 }
