@@ -2,7 +2,9 @@
 	path = lib/mqtt
 	url = https://github.com/tuanpmt/esp_mqtt.git
 	branch = master
-[submodule "lib/esphttpd"]
-	path = lib/esphttpd
-	url = http://git.spritesserver.nl/esphttpd.git/
-	branch = master
+[submodule "lib/libesphttpd"]
+	path = lib/libesphttpd
+	url = http://git.spritesserver.nl/libesphttpd.git/
+[submodule "lib/heatshrink"]
+	path = lib/heatshrink
+	url = https://github.com/atomicobject/heatshrink.git

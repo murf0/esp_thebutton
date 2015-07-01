@@ -12,7 +12,7 @@
 #include "gpio.h"
 #include "mem.h"
 
-#include "esphttpd.h"
+#include "../lib/libesphttpd/include/httpd.h"
 #include "btn_74HC595.h"
 #include "btn_mqtt.h"
 #include "btn_httpd_wifi.h"

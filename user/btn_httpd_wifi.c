@@ -14,8 +14,7 @@
 #include "debug.h"
 
 #include "mqtt.h"
-#include "esphttpd.h"
-
+#include "../lib/libesphttpd/include/httpd.h"
 
 void ICACHE_FLASH_ATTR btnSetSoftAP() {
         static struct softap_config config;

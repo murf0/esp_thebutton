@@ -32,16 +32,13 @@ void ICACHE_FLASH_ATTR flashleds(int times) {
     int y=0,i=0;
     for(i=1;i<=times;i++) {
         for(y=0;y<=8;y++) {
-            wdt_feed();
             os_delay_us(Flashtime);
             lightleds(y);
         }
         //INFO("FREE HEAP: %d\n",system_get_free_heap_size());
-        wdt_feed();
         os_delay_us(Flashtime);
         lightleds(0);
     }
-    wdt_feed();
     os_delay_us(Flashtime);
     ets_wdt_enable();
     INFO("Flashleds %d done\n",times);

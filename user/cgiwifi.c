@@ -26,7 +26,6 @@ Cgi/template routines for the /wifi url.
 #include <osapi.h>
 #include <user_interface.h>
 
-#include "uart_hw.h"
 
 #include "cgiwifi.h"
 

@@ -33,51 +33,32 @@ TARGET		= thebutton
 ESPFS_POS = 0x12000
 ESPFS_SIZE = 0x2E000
 
-# which modules (subdirectories) of the project to include in compiling
-ifdef BUTTON
-# name for the target project
 TARGET	= thebutton
-MODULES	=  driver user lib/mqtt/mqtt lib/esphttpd/espfs lib/esphttpd/httpd 
-CFLAGS	= -g -O2 -Os -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
-endif
-
-ifdef MQTT
-# name for the target project
-TARGET		= mqttlib
-MODULES	=  lib/mqtt/mqtt 
-CFLAGS	= -g -O2 -Os -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
-LDSKIP = true
-endif
-
-ifdef HTTPD
-
-# name for the target project
-TARGET		= httpdlib
-MODULES	=  lib/esphttpd/espfs lib/esphttpd/httpd lib/esphttpd/user 
-CFLAGS	= -Os -ggdb  -std=c99 -Werror -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-inline-functions \
+MODULES	=  lib/mqtt/mqtt lib/libesphttpd/espfs lib/libesphttpd/core user 
+CFLAGS	= -g -O2 -Os\
+         -ggdb -std=c99 -Werror -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-inline-functions \
 		-nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH -DGZIP_COMPRESSION\
-		-Wno-address -DESPFS_POS=$(ESPFS_POS) -DESPFS_SIZE=$(ESPFS_SIZE) -DESPFS_HEATSHRINK
-LDSKIP = true
-CFLAGS		+= -DGZIP_COMPRESSION
+		-Wno-address -DESPFS_POS=$(ESPFS_POS) -DESPFS_SIZE=$(ESPFS_SIZE) -DESPFS_HEATSHRINK -DGZIP_COMPRESSION\
+		-Wno-error=comment -Wno-error=implicit-function-declaration
+CFLAGS	= -g -O2 -Os\
+		-Wl,-EL -Wpointer-arith -Wundef -Werror\
+		-fno-inline-functions -ffunction-sections -fno-jump-tables -nostdlib\
+		-mlongcalls -mtext-section-literals\
+		-DESPFS_POS=$(ESPFS_POS) -DESPFS_SIZE=$(ESPFS_SIZE) -DESPFS_HEATSHRINK -DGZIP_COMPRESSION\
+		-D__ets__ -DICACHE_FLASH -DOTA
 
-endif
-
-EXTRA_INCDIR	= include $(SDK_BASE)/../include lib/heatshrink lib/esphttpd/include lib/esphttpd/httpd lib/esphttpd/espfs lib/esphttpd/user lib/mqtt/include lib/mqtt/mqtt
+EXTRA_INCDIR	= include lib/libesphttpd/include/ lib/mqtt/include/ lib/heatshrink/
 
 # libraries used in this project, mainly provided by the SDK
 LIBS		= c gcc hal phy pp net80211 lwip wpa upgrade main ssl
-
-# compiler flags using during compilation of source files
-CCFLAGS		+= -ffunction-sections -fno-jump-tables
-
-
 
 # linker flags used to generate the main object file
 LDFLAGS		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static -DICACHE_FLASH
 
 # linker script used for the above linkier step
-#LD_SCRIPT	= eagle.app.v6.ld
-LD_SCRIPT	= eagle.app.v6.New.ld
+#LD_SCRIPT	= eagle.app.v6.new.2048.ld
+LD_SCRIPT	= eagle.app.v6.ld
+
 
 # various paths from the SDK used in this project
 SDK_LIBDIR	= lib
@@ -142,28 +123,19 @@ endef
 
 .PHONY: all checkdirs clean
 
-ifdef C99
-all: checkdirs $(TARGET_OUT)
-else
-all: checkdirs $(TARGET_OUT) $(FW_FILE)
-endif
+all: checkdirs $(TARGET_OUT) $(FW_FILE) webpages.espfs
 
 $(FW_FILE): $(TARGET_OUT)
-ifndef LDSKIP
 	$(vecho) "FW $@"
 	$(Q) $(FW_TOOL) $(FW_FILE_ARGS) $(TARGET_OUT) 
-endif
 
 $(TARGET_OUT): $(APP_AR)
-ifndef LDSKIP
 	$(vecho) "LD $@"
 	$(Q) $(LD) -L$(SDK_LIBDIR) $(LD_SCRIPT) $(LDFLAGS) -Wl,--start-group $(LIBS) $(APP_AR) -Wl,--end-group -o $@
-endif
+
 $(APP_AR): $(OBJ)
-ifndef LDSKIP
 	$(vecho) "AR $@"
 	$(Q) $(AR) cru $@ $^
-endif
 
 checkdirs: $(BUILD_DIR) $(FW_BASE)
 
@@ -174,20 +146,20 @@ firmware:
 	$(Q) mkdir -p $@
 
 flash: $(FW_FILE) webpages.espfs
-	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x3c000 firmware/0x3c000.bin $(ESPFS_POS) webpages.espfs
+	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x40000 firmware/0x40000.bin $(ESPFS_POS) webpages.espfs
 
 webpages.espfs: html/ mkespfsimage
 	$(Q) cd html; find . | ../mkespfsimage > ../webpages.espfs; cd ..
 
-mkespfsimage: lib/esphttpd/espfs/mkespfsimage/
-	$(Q) make -C lib/esphttpd/espfs/mkespfsimage USE_HEATSHRINK="$(USE_HEATSHRINK)" GZIP_COMPRESSION="$(GZIP_COMPRESSION)"
-	$(Q) mv lib/esphttpd/espfs/mkespfsimage/mkespfsimage ./
+mkespfsimage: lib/libesphttpd/espfs/mkespfsimage/
+	$(Q) make -C lib/libesphttpd/espfs/mkespfsimage USE_HEATSHRINK="$(USE_HEATSHRINK)" GZIP_COMPRESSION="$(GZIP_COMPRESSION)"
+	$(Q) mv lib/libesphttpd/espfs/mkespfsimage/mkespfsimage ./
 
 hardresetflash:
-	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x7e000 $(BLANKER) 0x00000 $(BLANKER) 0x3c000 $(BLANKER) $(ESPFS_POS) $(BLANKER) 0x2c000 $(BLANKER)
+	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x7e000 $(BLANKER) 0x00000 $(BLANKER) 0x40000 $(BLANKER) $(ESPFS_POS) $(BLANKER) 0x40000 $(BLANKER)
 
 resetflash:
-	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 $(BLANKER) 0x3c000 $(BLANKER) 0x12000 $(BLANKER) 0x2c000 $(BLANKER)
+	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 $(BLANKER) 0x40000 $(BLANKER) 0x12000 $(BLANKER) 0x2c000 $(BLANKER)
 
 blankflash:
 	$(Q) $(PYTHON) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash 0x7E000 $(SDK_BASE)/bin/blank.bin

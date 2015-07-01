@@ -7,8 +7,11 @@
 #include "ets_sys.h"
 #include "osapi.h"
 
+#include "../lib/libesphttpd/include/httpd.h"
+#include "../lib/libesphttpd/include/cgiwifi.h"
+#include "../lib/libesphttpd/include/httpdespfs.h"
 
-#include "esphttpd.h"
+#include "driver/uart.h"
 #include "btn_74HC595.h"
 #include "btn_mqtt.h"
 #include "btn_wifi_handler.h"
@@ -36,7 +39,8 @@ HttpdBuiltInUrl builtInUrls[]={
 
 //Main routine. Initialize stdout, the I/O, webserver,Mqtt and we're done.
 void user_init(void) {
-    stdoutInit();
+    //stdoutInit();
+    uart_init(BIT_RATE_115200, BIT_RATE_115200);
     wifi_set_event_handler_cb(btn_wifi_handle_event_cb);
     INFO("\nDelay\n");
     os_delay_us(500000);
