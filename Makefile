@@ -32,14 +32,18 @@ TARGET		= thebutton
 #Position and maximum length of espfs in flash memory
 ESPFS_POS = 0x12000
 ESPFS_SIZE = 0x2E000
+# we create two different files for uploading into the flash
+# these are the names and options to generate them
+FW_BOOT_FILE	= 0x00000
+FW_FILE = 0x3c000
+
+#FW_FILE_1_ARGS	= -bo $@ -bs .text -bs .data -bs .rodata -bc -ec
+FW_FILE_ARGS	= elf2image -o firmware/
+
 
 TARGET	= thebutton
 MODULES	=  lib/mqtt/mqtt lib/libesphttpd/espfs lib/libesphttpd/core user 
-CFLAGS	= -g -O2 -Os\
-         -ggdb -std=c99 -Werror -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-inline-functions \
-		-nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH -DGZIP_COMPRESSION\
-		-Wno-address -DESPFS_POS=$(ESPFS_POS) -DESPFS_SIZE=$(ESPFS_SIZE) -DESPFS_HEATSHRINK -DGZIP_COMPRESSION\
-		-Wno-error=comment -Wno-error=implicit-function-declaration
+
 CFLAGS	= -g -O2 -Os\
 		-Wl,-EL -Wpointer-arith -Wundef -Werror\
 		-fno-inline-functions -ffunction-sections -fno-jump-tables -nostdlib\
@@ -65,11 +69,7 @@ SDK_LIBDIR	= lib
 SDK_LDDIR	= ld
 SDK_INCDIR	= include include/json
 
-# we create two different files for uploading into the flash
-# these are the names and options to generate them
-FW_FILE_1	= 0x00000
-#FW_FILE_1_ARGS	= -bo $@ -bs .text -bs .data -bs .rodata -bc -ec
-FW_FILE_ARGS	= elf2image -o firmware/
+
 
 # select which tools to use as compiler, librarian and linker
 CC		:= $(XTENSA_TOOLS_ROOT)/xtensa-lx106-elf-gcc
@@ -100,8 +100,6 @@ INCDIR	:= $(addprefix -I,$(SRC_DIR))
 EXTRA_INCDIR	:= $(addprefix -I,$(EXTRA_INCDIR))
 MODULE_INCDIR	:= $(addsuffix /include,$(INCDIR))
 
-FW_FILE	:= $(addprefix $(FW_BASE)/,$(FW_FILE_1).bin)
-FW_FILE_2	:= $(addprefix $(FW_BASE)/,$(FW_FILE_2).bin)
 BLANKER	:= $(addprefix $(SDK_BASE)/,bin/blank.bin)
 
 V ?= $(VERBOSE)
@@ -146,7 +144,7 @@ firmware:
 	$(Q) mkdir -p $@
 
 flash: $(FW_FILE) webpages.espfs
-	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x40000 firmware/0x40000.bin $(ESPFS_POS) webpages.espfs
+	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash $(FW_BOOT_FILE) firmware/$(FW_BOOT_FILE).bin $(FW_FILE) firmware/$(FW_FILE).bin $(ESPFS_POS) webpages.espfs
 
 webpages.espfs: html/ mkespfsimage
 	$(Q) cd html; find . | ../mkespfsimage > ../webpages.espfs; cd ..
@@ -155,18 +153,15 @@ mkespfsimage: lib/libesphttpd/espfs/mkespfsimage/
 	$(Q) make -C lib/libesphttpd/espfs/mkespfsimage USE_HEATSHRINK="$(USE_HEATSHRINK)" GZIP_COMPRESSION="$(GZIP_COMPRESSION)"
 	$(Q) mv lib/libesphttpd/espfs/mkespfsimage/mkespfsimage ./
 
-hardresetflash:
-	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x7e000 $(BLANKER) 0x00000 $(BLANKER) 0x40000 $(BLANKER) $(ESPFS_POS) $(BLANKER) 0x40000 $(BLANKER)
-
 resetflash:
-	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 $(BLANKER) 0x40000 $(BLANKER) 0x12000 $(BLANKER) 0x2c000 $(BLANKER)
+	$(Q) $(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x7e000 $(BLANKER) $(FW_BOOT_FILE) $(BLANKER) $(FW_FILE) $(BLANKER) $(ESPFS_POS) $(BLANKER) 0x40000 $(BLANKER) 0x2c000 $(BLANKER) 
 
 blankflash:
 	$(Q) $(PYTHON) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash 0x7E000 $(SDK_BASE)/bin/blank.bin
 	
 htmlflash: webpages.espfs
-	if [ $$(stat -f '%z' webpages.espfs) -gt $$(( 0x2E000 )) ]; then echo "webpages.espfs too big!"; false; fi
-	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x12000 webpages.espfs
+	if [ $$(stat -f '%z' webpages.espfs) -gt $$(( $(ESPFS_SIZE) )) ]; then echo "webpages.espfs too big!"; false; fi
+	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash $(ESPFS_POS) webpages.espfs
 
 test: flash
 	$(vecho) screen $(ESPPORT) 115200
