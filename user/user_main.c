@@ -42,9 +42,6 @@ void user_init(void) {
     //stdoutInit();
     uart_init(BIT_RATE_115200, BIT_RATE_115200);
     wifi_set_event_handler_cb(btn_wifi_handle_event_cb);
-    INFO("\nDelay\n");
-    os_delay_us(500000);
-    INFO("\nDelay Done\n");
     int x=wifi_get_opmode();
     if (x==3 || x==2) {
         btnSetSoftAP();
@@ -54,7 +51,7 @@ void user_init(void) {
     } else {
         INFO("\r\n\r\nNot SOFTAP, Not initating Httpd\n");
     }
-    lightleds(8);
+    noleds();
     INFO("\ninitmqtt\n");
     init_mqtt();
     INFO("\nbtnInitIO\n");

@@ -13,7 +13,8 @@
 #include "mem.h"
 #include "btn_74HC595.h"
 
-#define delay_ms 1001
+#define delay_ms 100
+
 int countdown=0,flashledslit=0;
 static os_timer_t delay_timer;
 
@@ -32,38 +33,46 @@ void ICACHE_FLASH_ATTR noleds() {
     GPIO_OUTPUT_SET(LatchPin, 0);
 }
 /*
-void ICACHE_FLASH_ATTR flashleds_NO(int times) {
+void ICACHE_FLASH_ATTR flashleds(int times) {
     ets_wdt_disable();
-    ets_wdt_feed();
     int y=0,i=0;
     for(i=1;i<=times;i++) {
         for(y=0;y<=8;y++) {
             os_delay_us(100000);
             lightleds(y);
+            //wdt_feed();
+            ets_wdt_restore();
         }
         //INFO("FREE HEAP: %d\n",system_get_free_heap_size());
         os_delay_us(100000);
-        lightleds(0);
+        noleds();
     }
     ets_wdt_enable();
     //INFO("Flashleds %d done\n",times);
 }
+*/
+/*
  start timer + set countdown
  in timer func countdown integer flash round sleep 1000000
  if countdown != 0 arm timer
  
  */
+
 void ICACHE_FLASH_ATTR flashled() {
     os_timer_disarm(&delay_timer);
-    if(flashledslit >= 8) {
-        flashledslit=0;
-    }
+    
     lightleds(flashledslit);
     flashledslit+=1;
-    countdown-=1;
-    if(!(countdown <=0)) {
-        os_timer_arm(&delay_timer, delay_ms, 1);
+    if(flashledslit > 8) {
+        flashledslit=0;
+        
     }
+    if(!(countdown < 0)) {
+        os_timer_arm(&delay_timer, delay_ms, 0);
+    } else {
+        lightleds(0);
+    }
+    countdown-=1;
 }
 
 void ICACHE_FLASH_ATTR flashleds(int times) {

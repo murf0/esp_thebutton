@@ -54,7 +54,7 @@ CFLAGS	= -g -O2 -Os\
 EXTRA_INCDIR	= include lib/libesphttpd/include/ lib/mqtt/include/ lib/heatshrink/
 
 # libraries used in this project, mainly provided by the SDK
-LIBS		= c gcc hal phy pp net80211 lwip wpa upgrade main ssl
+LIBS		= c gcc hal phy pp net80211 lwip wpa upgrade main ssl 
 
 # linker flags used to generate the main object file
 LDFLAGS		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static -DICACHE_FLASH
